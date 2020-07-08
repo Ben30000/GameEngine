@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/PNGDecoder (3).jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl/lwjgl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl/lwjgl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-assimp/lwjgl-assimp-natives-windows.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-assimp/lwjgl-assimp.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-glfw/lwjgl-glfw-natives-windows.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-glfw/lwjgl-glfw.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-opengl/lwjgl-opengl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-opengl/lwjgl-opengl.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-stb/lwjgl-stb.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-stb/lwjgl-stb-natives-windows.jar"/>
+	<classpathentry kind="lib" path="C:/StageItems/jai_imageio-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/lwjgl-stb/lwjgl-stb-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Benjamin/Downloads/joml-1.9.24.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
