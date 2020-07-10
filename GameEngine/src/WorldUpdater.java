@@ -263,6 +263,15 @@ public class WorldUpdater {
 			rightwardMovement = true;
 		}
 		
+		//
+		String closestWallType = "N/A";
+		double testNewWallPos,testNewFootX,testNewFootY;
+		
+		
+		
+		//
+		
+		
 		// Check if a ceiling will stop movement while on a terrain platforrm, or if it will alter trajectory while in air
 		double[] deltasAndAmountToMove = this.checkForCeiling(entity, totalAmountToMove, Math.abs(intervalDistanceToMove), entitiesInterval, movementType);
 		double footX = entity.getX(),   footY = entity.getY() - 0.5*entity.getHeight();
@@ -270,43 +279,63 @@ public class WorldUpdater {
 		double tenativeDX = deltasAndAmountToMove[0],   tenativeDY = deltasAndAmountToMove[1];
 		double finalDX = tenativeDX, finalDY = tenativeDY;
 		double finalAmountMoved = deltasAndAmountToMove[2];
-		
+		//System.out.println("     INITIAL FINALATM = "+finalAmountMoved);
 		// Finally, Check if a sloped wall will intercept the final movement
+		System.out.println("*^*^*^*^*^*^*^*^RIGHT BEFORE WALL FOR LOOP*^*^*^*^*^*^*^*^");
+		
+		double closestIntersectionDistance = -1.0;
+		
 		for (int k = 0; k < activeBackgrounds.size(); k++) {
 			for (int r = 0; r < activeBackgrounds.get(k).getSlopedWalls().size(); r++ ) {
+				System.out.println("       new wall");
+				
 				Interval aWall = activeBackgrounds.get(k).getSlopedWalls().get(r);
 				double wallAngle = aWall.getPlatformAngle();
 				double x1 = aWall.getX1(entity),  x2 = aWall.getX2(entity);
 				double startingWallPosition = aWall.getStartingPosition(entity),  endingWallPosition = aWall.getEndingPosition(entity);
-				double closestIntersectionDistance = -1.0;
+				
+				System.out.println("x1, x2. sP, eP = "+x1+", "+x2+", "+startingWallPosition+", "+endingWallPosition);
+				System.out.println("footX, footY = "+footX+", "+footY);
+				System.out.println("newFootX, newFootY = "+newFootX+", "+newFootY);
+				
+				
 				if ( (rightwardMovement && wallAngle > 0.0)    ||    (leftwardMovement && wallAngle < 0.0) ) {
-						double wallIntersectionResult[] = lineIntersection(footX, footY,   newFootX, newFootY,
+					// This section checks for intersection between entity and the wall
+					//System.out.println("WILL CHECK FOR REGULAR WALL INTER");	
+					double wallIntersectionResult[] = lineIntersection(footX, footY,   newFootX, newFootY,
 																			x1, startingWallPosition,   x2, endingWallPosition);
 						if (wallIntersectionResult != null) {
 						    if ((wallAngle > 0.0 && !(Math.abs(wallIntersectionResult[0] - x2) <= landingPrecision)) ||
 						    	(wallAngle < 0.0 && !(Math.abs(wallIntersectionResult[0] - x1) <= landingPrecision)) ) {
-									
+									System.out.println("~~~~WALL INTER");
 						    		double someDX = wallIntersectionResult[0] - footX;
 									double someDY = wallIntersectionResult[1] - footY;
 									double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
-									if (closestIntersectionDistance < 0.0) {
+									System.out.println("CLOSEST INTERSECTION DISTANCE IS "+closestIntersectionDistance);
+									System.out.println("THE NEW INTERSECTION DISTANCE IS "+intersectionDistance);
+									if (closestIntersectionDistance < 0.0    ||    intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
 										closestIntersectionDistance = intersectionDistance;
 										finalDX = someDX;
 										finalDY = someDY;
 										finalAmountMoved = Math.sqrt(finalDX*finalDX + finalDY*finalDY);
-									}
-									else if (intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
-										closestIntersectionDistance = intersectionDistance;
-										finalDX = someDX;
-										finalDY = someDY;
-										finalAmountMoved = Math.sqrt(finalDX*finalDX + finalDY*finalDY);										
+										closestWallType = "Wall";
+										testNewFootX = footX + finalDX;
+										testNewFootY = footY + finalDY;
+										testNewWallPos = startingWallPosition + (testNewFootX - x1)*Math.tan(wallAngle);
+										if (!(Math.abs(testNewFootY - testNewWallPos) <= landingPrecision) && testNewFootY < testNewWallPos) {
+											System.out.println("WENT BELOW WALL");
+											System.out.println("FootY: "+ testNewFootY +" and newWallPos: "+testNewWallPos);
+											//System.exit(0);
+										}
 									}
 
 						    }
 						}
 						else {
+							//System.out.println("NOW CHECKING FOR PERP INTER");
+							// This section checks for intersection between entity and the bottom, perpendicular part of the wall
 							double perpendicularPartOfWallIntersectionResult[] = null;
-							if (rightwardMovement && wallAngle > 0.0) {
+							if (rightwardMovement && wallAngle >= 0.0) {
 								perpendicularPartOfWallIntersectionResult = lineIntersection(footX, footY,   newFootX, newFootY,
 										x1, startingWallPosition, x1, startingWallPosition - entity.getHeight());										
 							}
@@ -314,16 +343,58 @@ public class WorldUpdater {
 								perpendicularPartOfWallIntersectionResult = lineIntersection(footX, footY,   newFootX, newFootY,
 										x2, endingWallPosition, x2, endingWallPosition - entity.getHeight());								
 							}
-							
+
 							if (perpendicularPartOfWallIntersectionResult != null) {
-								
+								System.out.println("!!!!PERP WALL INTER");
+							    if ((wallAngle > 0.0 && !(Math.abs(perpendicularPartOfWallIntersectionResult[0] - x2) <= landingPrecision)) ||
+								    	(wallAngle < 0.0 && !(Math.abs(perpendicularPartOfWallIntersectionResult[0] - x1) <= landingPrecision)) ) {
+											
+								    		double someDX = perpendicularPartOfWallIntersectionResult[0] - footX;
+											double someDY = perpendicularPartOfWallIntersectionResult[1] - footY;
+											double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
+											System.out.println("THE CLOSEST INTERSECTION DISTANCE IS "+ closestIntersectionDistance);
+											System.out.println("THE NEW INTERSECTION DISTANCE IS "+ intersectionDistance);
+											if (closestIntersectionDistance < 0.0    ||    intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
+												closestIntersectionDistance = intersectionDistance;
+												finalDX = someDX;
+												finalDY = someDY;
+												finalAmountMoved = Math.sqrt(finalDX*finalDX + finalDY*finalDY);
+												
+												
+												System.out.println("finalDX, finalDY, finalAmountMoved = "+finalDX+", "+finalDY+", "+finalAmountMoved);
+												
+												
+												
+												
+												//
+												closestWallType = "Perp Wall";
+												testNewFootX = footX + finalDX;
+												testNewFootY = footY + finalDY;
+												testNewWallPos = startingWallPosition + (testNewFootX - x1)*Math.tan(wallAngle);
+												if (!(Math.abs(testNewFootY - testNewWallPos) <= landingPrecision) && testNewFootY < testNewWallPos) {
+													System.out.println("WENT BELOW WALL");
+													System.out.println("FootY: "+ testNewFootY +" and newWallPos: "+testNewWallPos);
+													//System.exit(0);
+												}
+												//
+												
+											}
+
+								    }								
 							}
 																			
 						}
+						
+						
+						
+						
 				}
 			}
 		}		
-		
+		//System.out.println("OUTSIDE WALL LOOP: finalDX, finalDY, finalAmountMoved = "+finalDX+", "+finalDY+", "+finalAmountMoved);
+		if (closestWallType.compareTo("Perp Wall") == 0) {
+			//System.exit(0);
+		}
 		entity.setDX(finalDX);
 		entity.setDY(finalDY);
 		entity.move(3);
@@ -788,6 +859,10 @@ public class WorldUpdater {
 		}
 		
 		double endEntXPos = entity.getX();
+		if (Math.abs(endEntXPos - startEntXPos) > 0.0401) {
+			System.out.println("Abnormally large dx: "+(endEntXPos - startEntXPos));
+			System.exit(0);
+		}
 		//System.out.println("-----------------------navigate END-------------------------------");
 		
 	}

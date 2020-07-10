@@ -2155,6 +2155,7 @@ public class Player implements Entity {
 		Matrix4f shadowLightMatrix1 = new Matrix4f();
 		Matrix4f translationLightM = new Matrix4f();
 		translationLightM.translation(new Vector3f((float)(x  ),(float)(y  ),(float)(z )));
+		translationLightM.mul(aModelMatrix,translationLightM);
 		shadowLightMatrix1.mul(translationLightM,shadowLightMatrix1);
 		lightMatrix1.mul(shadowLightMatrix1,shadowLightMatrix1);
 		Matrix4f shadowLightMatrix2 = new Matrix4f();

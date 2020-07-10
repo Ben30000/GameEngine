@@ -802,7 +802,7 @@ public class StageItemPOM {
 				" float displacementOffset = 0.0;"+
 				" if (hasDisplacementMap == 1 && materialMode == 1) {"+
 				//////////////////////////////////////////
-				"	 displacementScale = 0.2;"+
+				"	 displacementScale = 0.19;"+
 				"	 displacementOffset = -0.1;"+
 				///////////////////////////////////////////
 				"     float displacementValue1 = 0.0;"+	
