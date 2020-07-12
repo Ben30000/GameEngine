@@ -670,7 +670,7 @@ public class StageItemPOM {
 			"		else if (posMVP0.z < 10.0 || posMVP1.z < 10.0 || posMVP2.z < 10.0){"+
 			"			tessellationFactor = 8.0;"+
 			"		} else {"+
-			"			tessellationFactor = 2.0;"+
+			"			tessellationFactor = 8.0;"+
 			"		}"+
 			
 			"  } " +

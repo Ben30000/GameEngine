@@ -411,6 +411,10 @@ public class EngineMain {
 					if (!player.getJumping() && !player.getFalling()) {
 						player.setJumping(true);
 					}
+					else if (player.getFalling()) {
+						//System.out.println("Trying to jump while in falling state");
+						//System.exit(0);
+					}
 					
 				  }
 				  else if (sequence == "Main Menu") {
@@ -1925,7 +1929,7 @@ glUseProgram(temporalFilteringProgram);
 		 "      sceneColor = (1.0 - shadowValue)*0.9*aColor + 0.1*aColor;"+ 
 		 "}"+
 		 "else {"+
-		 "	 float diffuseValue = (1.0 - 0.92*shadowValue)*0.8 *max(dot(normalize(-1.0*directionalLight.directionOrLocation), normalize(aNormal)),0.0);"+
+		 "	 float diffuseValue = (1.0 - 0.79*shadowValue)*0.8 *max(dot(normalize(-1.0*directionalLight.directionOrLocation), normalize(aNormal)),0.0);"+
 		 //"diffuseValue = (1.0 - shadowValue) * 0.8;"+
 		 " 	 float ambientValue = 1.0 ;"+
 		 " 	 sceneColor = 1.0*(1.40*0.6*diffuseValue*(directionalLight.color)*aColor + 0.25*1.00*ambientShadowValue*normalize(directionalLight.color)*aColor);"+
@@ -5260,7 +5264,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					//testCreature1 = new Pather(-8.0 ,-19.509527086202826 + 0.5,-14.241);
 					testCreature1 = new Pather(6.0,12.0,-10.241);
 							
-					mainCamera = new Camera(7.0,-16.990,0.0, 7.0,-16.990,-8.0);
+					mainCamera = new Camera(7.0,-18.990,0.0, 7.0,-18.990,-8.0);
 					 ArrayList<Creature> testCreatures = new ArrayList<Creature>();
 					 testCreatures.add(testCreature1);
 					 Background testBG1 = new Background(player);
@@ -6798,9 +6802,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            BufferedReader bufferedReader = 
 				                new BufferedReader(fileReader);
 
-				            boolean readingTerrain = false;
-				            boolean readingWalls = false;
-				            boolean readingCeilings = false;
+
 				            int currentIntervalType = 0;
 				            
 				            while((line = bufferedReader.readLine()) != null) {
@@ -6831,7 +6833,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            
 				            
 				            Interval interval = new Interval(Double.parseDouble(intervalLine[0]),Double.parseDouble(intervalLine[1]),Double.parseDouble(intervalLine[2]),Double.parseDouble
-				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),testBG1,player,currentIntervalType);
+				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType);
 				            if (currentIntervalType == 1) {
 				            	testBG1.addInterval(interval);
 				            }
@@ -6862,76 +6864,9 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 
 				       
 				        
-				        
-				        
-				        
-					 
-					 
-					 
-					 
-					 
-					 
-					 
-					 
-					 
-					 
-			/*		 
-					 
-
-					 Interval interval5 = new Interval(-1.0,6.0,-20.0,20.0,-8.1,-8.1,0.01,0.01,true,1,0,testBG1,player,3,3,1,true,false,1);
-
-					 Interval interval6 = new Interval(19.1,23.6,-20.0,20.0,-8.1,-8.1,0.9,8.2,true,1,0,testBG1,player,3,3,1,true,true,2);
-					 
-				 Interval interval8 = new Interval(-3.0,-1.1,-20.0,20.0,-8.1,-8.1,2.1,-3.2,true,1,0,testBG1,player,3,3,1,true,true,2);
-
-				 Interval interval9 = new Interval(22.1,39.0,-20.0,20.0,-8.1,-8.1,2.2,14.2,true,1,0,testBG1,player,3,3,1,true,true,1);
-				 
-				 Interval interval10 = new Interval(-22.1,-3.0,-20.0,20.0,-8.1,-8.1,17.1,2.1,true,1,0,testBG1,player,3,3,1,true,true,1);
-				 
-				 Interval interval15 = new Interval(19.01,19.1,-20.0,20.0,-8.1,-8.1,200,240.0,true,1,0,testBG1,player,3,3,1,true,true,1);
-
-				 Interval interval16 = new Interval(-2.82,12.1,-20.0,20.0,-8.1,-8.1,3.7,0.1,true,1,0,testBG1,player,3,3,1,true,true,3);
-				 //Interval interval17 = new Interval(-2.82,12.1,-20.0,20.0,-8.1,-8.1,0.1,3.7,true,1,0,testBG1,player,3,3,1,true,true,3);
-
-			
-				 
-					 
-					ArrayList<Interval> intervalsBG1 = new ArrayList<Interval>();
-					intervalsBG1.add(interval1);
-					intervalsBG1.add(interval2);
-					intervalsBG1.add(interval3);
-				intervalsBG1.add(interval4);
-					testBG1.addInterval(interval1);
-				//	testBG1.addInterval(interval2);
-					testBG1.addInterval(interval3);
-					testBG1.addInterval(interval12);
-					testBG1.addInterval(interval13);
-				    testBG1.addInterval(interval14);
-					testBG1.addInterval(interval15);
-					//testBG1.addInterval(interval2);
-				    //testBG1.addInterval(interval3);
-				    
-				   testBG1.addInterval(interval4);
-				    //testBG1.addInterval(interval5);
-				   // testBG1.addInterval(interval6);
-				    
-					
-				   testBG1.addCeiling(interval16);
-				   
-				   testBG1.addInterval(interval5);
-				   
-				   testBG1.addSlopedWall(interval6);
-				   testBG1.addSlopedWall(interval8);
-				   testBG1.addSlopedWall(interval11);
-				   
-				   testBG1.addInterval(interval9);
-				   
-				   testBG1.addInterval(interval10);
-				  
-			*/	   
+   
 				
-				//		 Interval interval8 = new Interval(-3.0,-1.1,2.1,-0.4,-8.1,-8.1,true,true,testBG1,player,2);
-				//	testBG1.addSlopedWall(interval8);	 
+	 
 				   DeadEndInterval lde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,testBG1,1);
 			//	    DeadEndInterval rde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,testBG1,2);
 				    
@@ -6941,11 +6876,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				    
 				    testBG1.setDeadEndIntervals(bg1DEs);
 				    
-				    /*
-				    Wall wall1 = new Wall(4.0,-10.0,2.20,0.00,0.00,2,testBG1);
-					testBG1.addWall(wall1);
-					
-			*/
+				
 					
 			/*	lake1.addDrop(new float[]{0.0f,0.0f},01.24f, 0.021f);
 					lake1.addDrop(new float[]{-0.4f,0.2f},0.9f, 0.012f);
@@ -7019,19 +6950,15 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 			
 			
 			// Poll for window events. The key callback above will only be
-				// invoked during this call.
+			// invoked during this call.
 				glfwPollEvents();                                                                        // Check for input
-		   //     player.animate();
+
 
 			}
 		}
 		
 		private float snap(float f, float multiple) {
-	//	System.out.println("Before snapping, " + f);
-	//	System.out.println("After snapping, " + Math.round(f/multiple)*multiple);
-		
 			return Math.round(f/multiple)*multiple;
-		//return f;
 		}
 		
 		public Vector3f[] generateSphereOfPoints(int numberOfSamples) throws IOException {
