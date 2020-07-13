@@ -53,6 +53,8 @@ public class EngineMain {
 		private long window;
 		private int shadowMap1, shadowMap2, shadowMap3, shadowMap4, shadowMap1FBO, shadowMap2FBO, shadowMap3FBO, shadowMap4FBO;
 		
+		double landingPrecision = 0.00001;
+		
 		private int sceneDepthFBO;
 		private int sceneDepthRBO;
 		
@@ -6833,7 +6835,8 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            
 				            
 				            Interval interval = new Interval(Double.parseDouble(intervalLine[0]),Double.parseDouble(intervalLine[1]),Double.parseDouble(intervalLine[2]),Double.parseDouble
-				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType);
+				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType,
+				            		landingPrecision);
 				            if (currentIntervalType == 1) {
 				            	testBG1.addInterval(interval);
 				            }
@@ -6921,8 +6924,9 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 						
 						 player.setBG(testBG1);
 						 testCreature1.setBG(testBG1);
-							
-						zone = new WorldUpdater(2,player);
+						 
+						
+						zone = new WorldUpdater(2,player,landingPrecision);
 					
 						ArrayList<Background> zoneBGs = new ArrayList<Background>();
 						zoneBGs.add(testBG1);
