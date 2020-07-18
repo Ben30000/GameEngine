@@ -1,5 +1,7 @@
 public class Interval {
 
+	static public double landingPrecision;
+	
 	private double x1;
 	private double x2;
 	private double y1;             // Refers to beginning y position at left end point of interval
@@ -9,9 +11,9 @@ public class Interval {
 	private double platformAngle;	
 	private boolean leftCliff, rightCliff;
 	private int type;                     // type: 1 = Interval, 2 = Wall, 3 = Ceiling
-	private double landingPrecision;
 	
-	public Interval(double x1, double x2, double y1, double y2, double z1, double z2, boolean leftCliff, boolean rightCliff, int type, double landingPrecision) {
+	
+	public Interval(double x1, double x2, double y1, double y2, double z1, double z2, boolean leftCliff, boolean rightCliff, int type) {
 		this.x1 = x1;
 		this.x2 = x2;
 		this.z1 = z1;
@@ -22,11 +24,7 @@ public class Interval {
 		this.leftCliff = leftCliff;
 		this.rightCliff = rightCliff;
 		this.type = type;
-		this.landingPrecision = landingPrecision;
-		
-		if (type == 3) {
-			System.out.println("CEILING");
-		}
+		System.out.println("THIS INTERVAL HAS ANGLE : "+this.platformAngle);
 	}
 	
 	public double getX1(double width) {
@@ -52,18 +50,21 @@ public class Interval {
 	}
 	
 	public double getLandingPosition(double widthToUse, Entity entity) {
-		double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
+		//double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
+		double landingPosition = this.y1 + (entity.getX() - x1)*(y2 - y1)/(x2 - x1);
 		return landingPosition;
 	} 
 
    
 	public double getLandingPosition(Entity entity) {
-		double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
+		//double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
+		double landingPosition = this.y1 + (entity.getX() - x1)*(y2 - y1)/(x2 - x1);
 		return landingPosition;
 	}
    
 	public double getLandingPositionFromSpecificPosition(double x) {
-		double landingPosition = this.y1 + (x - x1)*Math.tan(platformAngle);
+		//double landingPosition = this.y1 + (x - x1)*Math.tan(platformAngle);
+		double landingPosition = this.y1 + (x - x1)*(y2 - y1)/(x2 - x1);
 		return landingPosition;
 	}
 
@@ -136,21 +137,25 @@ public class Interval {
 	}
 	
 	public boolean isPositionAtX1(double x) {
+		
 		if (Math.abs(x1 - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(x) - y1) <= landingPrecision) {
 			return true;
 		}
 		else {
 			return false;
 		}
-	}
+	
+	 }
 	
 	public boolean isPositionAtX2(double x) {
+		
 		if (Math.abs(x2 - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(x) - y2) <= landingPrecision) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	
 	}
 
 }

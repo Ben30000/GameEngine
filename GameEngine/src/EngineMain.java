@@ -53,7 +53,7 @@ public class EngineMain {
 		private long window;
 		private int shadowMap1, shadowMap2, shadowMap3, shadowMap4, shadowMap1FBO, shadowMap2FBO, shadowMap3FBO, shadowMap4FBO;
 		
-		double landingPrecision = 0.00001;
+		private double landingPrecision = 0.00001;
 		
 		private int sceneDepthFBO;
 		private int sceneDepthRBO;
@@ -299,7 +299,7 @@ public class EngineMain {
 			
 			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
+             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0); 
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
 
@@ -3335,6 +3335,10 @@ glMatrixMode(GL_MODELVIEW);
 				
 				// TODO
 				// CLEAN UP THIS SECTION / CONSOLIDATE INTO A FOR LOOP
+				
+				ArrayList<double[]> frustums = new ArrayList<double[]>();
+				frustums.add(new double[] {0.001, 4.0});
+				frustums.add(new double[] {4.0, 8.0});
 				
 				ArrayList<Vector4f> corners = new ArrayList<Vector4f>();
 				
@@ -6787,6 +6791,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 * * * * * * * * * * *	        			        
 					 */
 					 
+						Interval.landingPrecision = this.landingPrecision;
 
 				        String worldOneTerrain = "C:/StageItems/WORLD_INTERVAL_DATA_1.txt";
 
@@ -6835,8 +6840,8 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            
 				            
 				            Interval interval = new Interval(Double.parseDouble(intervalLine[0]),Double.parseDouble(intervalLine[1]),Double.parseDouble(intervalLine[2]),Double.parseDouble
-				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType,
-				            		landingPrecision);
+				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType
+				            		);
 				            if (currentIntervalType == 1) {
 				            	testBG1.addInterval(interval);
 				            }

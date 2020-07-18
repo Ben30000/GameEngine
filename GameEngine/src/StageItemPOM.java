@@ -1286,7 +1286,7 @@ public class StageItemPOM {
 " float k = 1.0;"+
 
 " a = 0.024f;"+
-" c = 0.001f;"+ // USE 0.001
+" c = 0.0008f;"+ // USE 0.001
 
  "searchRadius = 0.02;"+
 " blurriestRadius = 0.02;"+
@@ -1356,10 +1356,10 @@ public class StageItemPOM {
 
 
 // For biasing closest depth in PCSS
-"float PCSSBias = 0.01;"+  
+//"float PCSSBias = 0.01;"+  
 
 
-"float startSofteningDepth = 0.014f;"+
+"float startSofteningDepth = 0.01f;"+
 
 
 
@@ -2398,7 +2398,7 @@ public class StageItemPOM {
 	        
 	        
 	        
-	        
+	        // Shadow Map Shader
 	        
 	        
 	        
@@ -2934,7 +2934,7 @@ public class StageItemPOM {
 		//1.0*directionalLight.directionOrLocation
 		" float bias = max( 0.05 * ( 1.0 - dot( 1.0*normalize(vec3(0.0,1.0,0.0)), normalize(fNVec))), 0.005f);" +
 		
-		" bias = 0.001;"+
+		" bias = 0.00;"+
 
 		//" vec4 c;"+
 " float p = 0.4;"+

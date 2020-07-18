@@ -220,7 +220,7 @@ public class Player implements Entity {
 		this.slopedWallAngle = 0.0;
 		x = -7.0;
 		x = 5.9;
-		x = 6.09;
+		x = 7.09;
 		y = -12.27;
 		z = -5.0;
 		this.height = 0.50;
@@ -400,7 +400,7 @@ public class Player implements Entity {
 "float shadow = 0.0;"+
 "float shadowAnimated = 0.0;"+
 
-"								float bias = 0.001;"+
+"								float bias = 0.0125;"+
 //"float r = 80.0;"+
 
 
