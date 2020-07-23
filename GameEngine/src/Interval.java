@@ -1,44 +1,82 @@
+import org.joml.Vector2d;
+
 public class Interval {
 
-	static public double landingPrecision;
+	static public double landingPrecision;    // static variables and methods are defined before the creation of an instances of an object and can be referenced as Class.variable/method
+	static final public int NONCLIFFTERRAIN = 1;
+	static final public int LEFTCLIFFTERRAIN = 2;
+	static final public int RIGHTCLIFFTERRAIN = 3;
+	static final public int NONCLIFFCEILING = 4;
+	static final public int LEFTCLIFFCEILING = 5;
+	static final public int RIGHTCLIFFCEILING = 6;
 	
 	private double x1;
 	private double x2;
-	private double y1;             // Refers to beginning y position at left end point of interval
-	private double y2;					// Refers to ending y position at right end point of interval
+	private double y1;
+	private double y2;
 	private double z1;
 	private double z2;
-	private double platformAngle;	
-	private boolean leftCliff, rightCliff;
-	private int type;                     // type: 1 = Interval, 2 = Wall, 3 = Ceiling
+	private Interval leftInterval, rightInterval;
+	private int type;                     // type: 1 = Terrain, 2 = Wall, 3 = Ceiling
 	
 	
-	public Interval(double x1, double x2, double y1, double y2, double z1, double z2, boolean leftCliff, boolean rightCliff, int type) {
+	
+	public Interval(double x1, double x2, double y1, double y2, double z1, double z2, Interval leftInterval, Interval rightInterval, int type) {
 		this.x1 = x1;
 		this.x2 = x2;
 		this.z1 = z1;
 		this.z2 = z2;
-		this.platformAngle = Math.atan2(y2 - y1,x2 - x1);
 		this.y1 = y1;
 		this.y2 = y2;
-		this.leftCliff = leftCliff;
-		this.rightCliff = rightCliff;
+		this.leftInterval = leftInterval;
+		this.rightInterval = rightInterval;
 		this.type = type;
-		System.out.println("THIS INTERVAL HAS ANGLE : "+this.platformAngle);
 	}
 	
-	public double getX1(double width) {
-			return this.x1;
-	}
-	public double getX1(Entity entity) {
-		return this.x1;
-}
 	
-	public double getX2(double width) {
-			return this.x2;
+	public double getX1(Entity entity, int intervalMode) {
+
+		if (intervalMode == NONCLIFFTERRAIN) {
+			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
+			|| (getType() == 3 && getPlatformAngle(intervalMode) <= 0.0) ) {                        // width extend walls/ceilings
+				return this.x1 - 0.5*entity.getFeetWidth();
+			}
+			else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
+			|| (getType() == 3 && getPlatformAngle(intervalMode) > 0.0) ) {						// width extend walls/ceilings
+				return this.x1 + 0.5*entity.getFeetWidth();
+			}
+			return this.x1;																			// standard terrain
+		}
+		else if (intervalMode == LEFTCLIFFTERRAIN) {			
+			return this.x1 - 0.5*entity.getFeetWidth();												// left cliff terrain
+		}
+		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+			return this.x2;																			// right cliff terrain
+		}
+		return this.x1;																				// default standard terrain
 	}
-	public double getX2(Entity entity) {
-		return this.x2;
+	
+	
+	public double getX2(Entity entity, int intervalMode) {
+
+		if (intervalMode == NONCLIFFTERRAIN) {
+			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
+			|| (getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {							// width extend walls/ceilings
+				return this.x2 - 0.5*entity.getFeetWidth();
+			}
+			else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
+			|| (getType() == 3 && getPlatformAngle(intervalMode) >= 0.0) ) {						// width extend walls/ceilings
+				return this.x2 + 0.5*entity.getFeetWidth();
+			}
+			return this.x2;																			// standard terrain
+		}
+		else if (intervalMode == LEFTCLIFFTERRAIN) {
+			return this.x1;																			// left cliff terrain
+		}
+		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+			return this.x2 + 0.5*entity.getFeetWidth();												// right cliff terrain
+		}
+		return this.x2;																				// default standard terrain
 	}
 
 	public void setX1(int x1) {
@@ -49,68 +87,118 @@ public class Interval {
 		this.x2 = x2;
 	}
 	
-	public double getLandingPosition(double widthToUse, Entity entity) {
-		//double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
-		double landingPosition = this.y1 + (entity.getX() - x1)*(y2 - y1)/(x2 - x1);
-		return landingPosition;
-	} 
 
-   
-	public double getLandingPosition(Entity entity) {
-		//double landingPosition = this.y1 + (entity.getX() - this.x1)*Math.tan(platformAngle);
-		double landingPosition = this.y1 + (entity.getX() - x1)*(y2 - y1)/(x2 - x1);
-		return landingPosition;
+	public double getLandingPosition(Entity entity, int intervalMode) {
+
+		double footX = entity.getX();
+		
+
+		if (intervalMode == NONCLIFFTERRAIN) {
+			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
+		}
+		else if (intervalMode == LEFTCLIFFTERRAIN) {
+			if (isLeftCliff()) {
+				return this.y1;
+			}
+		}
+		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+			if (isRightCliff()) {
+				return this.y2;
+			}
+		}
+		return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));     // default
+		
 	}
    
-	public double getLandingPositionFromSpecificPosition(double x) {
-		//double landingPosition = this.y1 + (x - x1)*Math.tan(platformAngle);
-		double landingPosition = this.y1 + (x - x1)*(y2 - y1)/(x2 - x1);
-		return landingPosition;
+	public double getLandingPositionFromSpecificPosition(Entity entity, double x, int intervalMode) {
+
+		double footX = x;
+
+		if (intervalMode == NONCLIFFTERRAIN) {
+			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
+		}
+		else if (intervalMode == LEFTCLIFFTERRAIN) {
+			if (isLeftCliff()) {
+				return this.y1;
+			}
+		}
+		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+			if (isRightCliff()) {
+				return this.y2;
+			}
+		}
+		return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));     // default
+
 	}
 
-	public double getY1(double widthToUse) {
-		return this.y1;
-	}
+	
 
-	public double getY1(Entity entity) {
+	public double getY1(Entity entity, int intervalMode) {
+		if (intervalMode == RIGHTCLIFFTERRAIN) {
+			return this.y2;
+		}
 		return this.y1;
 	}
 
 	public void setY1(double y1) {
 		this.y1 = y1;
 	}
+	
 
-	public double getPlatformAngle() {
-		return this.platformAngle;
-	}
-
-	public boolean isLeftCliff() {
-		return this.leftCliff;
-	}
-
-	public void setLeftCliff(boolean leftCliff) {
-		this.leftCliff = leftCliff;
-	}
-
-	public boolean isRightCliff() {
-		return this.rightCliff;
-	}
-
-	public void setRightCliff(boolean rightCliff) {
-		this.rightCliff = rightCliff;
-	}
-
-	public double getY2(double widthToUse) {
-		return this.y2;
-	}
-
-	public double getY2(Entity entity) {
+	public double getY2(Entity entity, int intervalMode) {
+		if (intervalMode == LEFTCLIFFTERRAIN) {
+			return this.y1;
+		}
 		return this.y2;
 	}
 
 	public void setY2(double y2) {
 		this.y2 = y2;
 	}
+
+
+	public double getPlatformAngle(int intervalMode) {
+
+		if (intervalMode == NONCLIFFTERRAIN) {
+			return Math.atan2(y2 - y1,x2 - x1);                   // dont need to use getX() or getY() for (potentially) width extended endpoints here since angle won't change
+		}
+		return 0.0;
+
+	}
+	
+
+	public boolean isLeftCliff() {
+		if ( this.leftInterval == null) {
+			if (getType() == 1) {
+				return true;
+			}
+			return false;
+		}
+		else {
+			if (getType() == 1 && this.leftInterval.getType() != 1) {
+				return true;
+			}
+			return false;
+		}
+
+	}
+
+	public boolean isRightCliff() {
+		if (this.rightInterval == null) {
+			if (getType() == 1) {
+				return true;
+			}
+			return false;
+		}
+		else {
+			if (this.getType() == 1 && this.rightInterval.getType() != 1) {
+				return true;
+			}
+			return false;
+		}
+
+	}
+
 
 	public double getZ1() {
 		return this.z1;
@@ -136,9 +224,12 @@ public class Interval {
 		this.type = type;
 	}
 	
-	public boolean isPositionAtX1(double x) {
+	public boolean isPositionAtX1(double x, Entity entity, int intervalMode) {
 		
-		if (Math.abs(x1 - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(x) - y1) <= landingPrecision) {
+		double x1ToUse = getX1(entity,intervalMode);
+		double y1ToUse = getY1(entity,intervalMode);
+		
+		if (Math.abs(x1ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y1ToUse) <= landingPrecision) {
 			return true;
 		}
 		else {
@@ -147,9 +238,12 @@ public class Interval {
 	
 	 }
 	
-	public boolean isPositionAtX2(double x) {
+	public boolean isPositionAtX2(double x, Entity entity, int intervalMode) {
 		
-		if (Math.abs(x2 - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(x) - y2) <= landingPrecision) {
+		double x2ToUse = getX2(entity,intervalMode);
+		double y2ToUse = getY2(entity,intervalMode);
+		
+		if (Math.abs(x2ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y2ToUse) <= landingPrecision) {
 			return true;
 		}
 		else {
@@ -158,4 +252,19 @@ public class Interval {
 	
 	}
 
+	public Interval getLeftInterval() {
+		return this.leftInterval;
+	}
+	
+	public void setLeftInterval(Interval interval) {
+		this.leftInterval = interval;
+	}
+	
+	public Interval getRightInterval() {
+		return this.rightInterval;
+	}
+	
+	public void setRightInterval(Interval interval) {
+		this.rightInterval = interval;
+	}
 }

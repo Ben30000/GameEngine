@@ -316,7 +316,7 @@ public class EngineMain {
         
 		
         		/* ***************************************************************
-        		 * Keyboard Input Handling *
+        		 * Keyboard Input Handling *    
         		 ************************************************************** */
         
 				// Setup a key callback. It will be called every time a key is pressed, repeated or released.
@@ -586,8 +586,8 @@ public class EngineMain {
 					 if ( key == GLFW_KEY_R && action == GLFW_PRESS ) {
 						
 					  if (sequence == "Level") {
-						  player.setX(0.0);
-						  player.setY(0.0);
+						  player.setX(10.0);
+						  player.setY(-15.0);
 						  
 					  }
 					  else if (sequence == "Main Menu") {
@@ -6794,7 +6794,12 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 						Interval.landingPrecision = this.landingPrecision;
 
 				        String worldOneTerrain = "C:/StageItems/WORLD_INTERVAL_DATA_1.txt";
+				        
+				        // These lists are used for the sake of loading an Interval's neighboring intervals
+				        ArrayList<Interval> allIntervals = new ArrayList<Interval>();
+				        ArrayList<String[]> intervalNeighborIndices = new ArrayList<String[]>();
 
+				        
 				        String line = null;
 
 				        try {
@@ -6812,50 +6817,97 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 
 				            int currentIntervalType = 0;
 				            
+				            bufferedReader.readLine();
+				            bufferedReader.readLine();
+				            
 				            while((line = bufferedReader.readLine()) != null) {
-
-				            
-				            
-				            if (line.equals("TERRAIN")) {
-				            	currentIntervalType = 1;
-				            	continue;
-				            }
-				            else if (line.equals("WALLS")) {
-				            	currentIntervalType = 2;
-				            	continue;
-				            }
-				            else if (line.equals("CEILINGS")) {
-				            	currentIntervalType = 3;
-				            	continue;
-				            }
-				            
-				            
-				         // Terrain file line format :  x1, x2, sP, eP, z1, z2, leftCliff, rightCliff
-				            String[] intervalLine = line.split(" ");
-				            if (intervalLine.length !=  8) {
-				            	System.out.println("Interval line does not have the proper number of inputs");
-				            	System.exit(0);
-				            }
-				            
-				            
-				            
-				            Interval interval = new Interval(Double.parseDouble(intervalLine[0]),Double.parseDouble(intervalLine[1]),Double.parseDouble(intervalLine[2]),Double.parseDouble
-				            		(intervalLine[3]),Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]),Boolean.parseBoolean(intervalLine[6]),Boolean.parseBoolean(intervalLine[7]),currentIntervalType
-				            		);
-				            if (currentIntervalType == 1) {
-				            	testBG1.addInterval(interval);
-				            }
-				            else if (currentIntervalType == 2) {
-				            	testBG1.addSlopedWall(interval);
-				            }
-				            else if (currentIntervalType == 3) {
-				            	testBG1.addCeiling(interval);
-				            }
-				            
+					            
+					            if (line.equals("TERRAIN")) {
+					            	currentIntervalType = 1;
+					            	continue;
+					            }
+					            else if (line.equals("WALLS")) {
+					            	currentIntervalType = 2;
+					            	continue;
+					            }
+					            else if (line.equals("CEILINGS")) {
+					            	currentIntervalType = 3;
+					            	continue;
+					            }
+					            
+					            
+					         // Terrain file line format :  x1, x2, sP, eP, z1, z2, leftCliff, rightCliff
+					            String[] intervalLine = line.split(" ");
+					            if (intervalLine.length !=  8) {
+					            	System.out.println("Interval line does not have the proper number of inputs");
+					            	System.exit(0);
+					            }
+					            
+					            
+					            
+					            Interval interval = new Interval(Double.parseDouble(intervalLine[0]),Double.parseDouble(intervalLine[1]),
+					            		Double.parseDouble(intervalLine[2]),Double.parseDouble(intervalLine[3]),
+					            		Double.parseDouble(intervalLine[4]),Double.parseDouble(intervalLine[5]), 
+					            		null, null, currentIntervalType
+					            		);
+					            if (currentIntervalType == 1) {
+					            	testBG1.addInterval(interval);
+					            }
+					            else if (currentIntervalType == 2) {
+					            	testBG1.addSlopedWall(interval);
+					            }
+					            else if (currentIntervalType == 3) {
+					            	testBG1.addCeiling(interval);
+					            }
+					            
+					            allIntervals.add(interval);
+					            intervalNeighborIndices.add(new String[] {intervalLine[6], intervalLine[7]});
+					            
+					        
+					           
 				            }   
 
+				            System.out.println("Terrain neighboring indices");
+				            for (int g = 0; g < intervalNeighborIndices.size(); g++) {
+				            	System.out.println("neighbors: "+intervalNeighborIndices.get(g)[0]+" and "+intervalNeighborIndices.get(g)[1]);
+				            	char intervalLeftNeighborType = intervalNeighborIndices.get(g)[0].charAt(0);
+				            	int intervalLeftNeighborIndex = Character.getNumericValue(intervalNeighborIndices.get(g)[0].charAt(1));
+				            	char intervalRightNeighborType = intervalNeighborIndices.get(g)[1].charAt(0);
+				            	int intervalRightNeighborIndex = Character.getNumericValue(intervalNeighborIndices.get(g)[1].charAt(1));
+				            	
+				            	if (Character.compare(intervalLeftNeighborType, 't') == 0) {
+				            		allIntervals.get(g).setLeftInterval(testBG1.getIntervals().get(intervalLeftNeighborIndex));
+				            	}
+				            	else if (Character.compare(intervalLeftNeighborType, 'w') == 0) {
+				            		allIntervals.get(g).setLeftInterval(testBG1.getSlopedWalls().get(intervalLeftNeighborIndex));
+				            	}
+				            	else if (Character.compare(intervalLeftNeighborType, 'c') == 0) {
+				            		allIntervals.get(g).setLeftInterval(testBG1.getCeilings().get(intervalLeftNeighborIndex));
+				            	}
+				            	
+				            	if (Character.compare(intervalRightNeighborType, 't') == 0) {
+				            		allIntervals.get(g).setRightInterval(testBG1.getIntervals().get(intervalRightNeighborIndex));
+				            	}
+				            	else if (Character.compare(intervalRightNeighborType, 'w') == 0) {
+				            		allIntervals.get(g).setRightInterval(testBG1.getSlopedWalls().get(intervalRightNeighborIndex));
+				            	}
+				            	else if (Character.compare(intervalRightNeighborType, 'c') == 0) {
+				            		allIntervals.get(g).setRightInterval(testBG1.getCeilings().get(intervalRightNeighborIndex));
+				            	}
+				            	
+				            }
+				            
+				            System.out.println("Finished loading intervals...");
+				            for (int j = 0; j < testBG1.getIntervals().size(); j++) {
+				            	System.out.println("interval left neighbor : "+testBG1.getIntervals().get(j).getLeftInterval());
+				            	System.out.println("interval right neighbor : "+testBG1.getIntervals().get(j).getRightInterval());
+				            }
+				            
+				            
 				            // Always close files.
-				            bufferedReader.close();         
+				            bufferedReader.close();    
+				            
+				            
 				        }
 				        catch(FileNotFoundException ex) {
 				            System.out.println(

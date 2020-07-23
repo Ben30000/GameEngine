@@ -225,7 +225,7 @@ public class Player implements Entity {
 		z = -5.0;
 		this.height = 0.50;
 		width = 0.50;
-		feetWidth = 0.50;
+		feetWidth = 0.480;
 		feetOSet = 10;
 		feetHeight = 5;
 		dx = 0;
