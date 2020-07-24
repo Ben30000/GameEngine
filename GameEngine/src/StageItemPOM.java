@@ -2428,7 +2428,7 @@ public class StageItemPOM {
 	       		  "float c = 80.0;"+
 	       		  
 //	       		  " fragColor = vec4( exp(c*gl_FragCoord.z), 0.0, 0.0, 1.0);"+
-					"		fragColor = vec4(gl_FragCoord.z + 0.0125,0.0,0.0,1.0);"+
+					"		fragColor = vec4(gl_FragCoord.z + 0.001,0.0,0.0,1.0);"+
 					"}";
 
 

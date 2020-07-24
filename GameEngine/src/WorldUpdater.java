@@ -941,7 +941,7 @@ public class WorldUpdater {
 		
 		
 		while (amountToMoveCeiling > 0.0) {
-System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
+			System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 			System.out.println("CEILING: WHILE LOOP BEGIN, amountToMoveCeiling = "+amountToMoveCeiling);
 			double footX = entity.getX() + dxToMove;
 			double footY = entity.getY() - 0.5*entity.getHeight() + dyToMove;
@@ -956,103 +956,119 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 			   }
 			
 			Interval creaturesCeiling = null;
+			int creaturesCeilingIntervalMode = 1;
 			Interval closestCeiling = null;
-				//	System.out.println("CEILING: ceilings.size = "+activeBackgrounds.get(0).getCeilings().size());
+			int closestCeilingIntervalMode = 1;
+			
 			for (int a = 0; a < activeBackgrounds.size(); a++) {
 				for (int v = 0; v < activeBackgrounds.get(a).getCeilings().size(); v++) {
 					
-					Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
-					double x1 = aCeiling.getX1(entity, 1),  x2 = aCeiling.getX2(entity, 1);
-					double startingCeilingPosition = aCeiling.getY1(entity, 1),  endingCeilingPosition = aCeiling.getY2(entity, 1);
-					double angle = aCeiling.getPlatformAngle(1);
-					// Have to compute ceilingPosition manually here because entity position is not actually updated until the while loop in navigate finishes
-					double ceilingPosition = aCeiling.getLandingPositionFromSpecificPosition(entity, footX, 1);
-					
-					
-					// Previously used just the x coordinate of an interval to determine if entity was at interval endpoint, can't do this for nearly perpendicular intervals
-					double distanceBetweenHeadAndX1EndPoint = Math.sqrt((footX-x1)*(footX-x1) + (headY-startingCeilingPosition)*(headY-startingCeilingPosition));
-					double distanceBetweenHeadAndX2EndPoint = Math.sqrt((footX-x2)*(footX-x2) + (headY-endingCeilingPosition)*(headY-endingCeilingPosition));
-
-					
-					// Test for ceiling acting as perpendicular wall
-					if ( ( (aCeiling.isPositionAtX1(footX,entity, 1) || aCeiling.isPositionAtX2(footX,entity, 1)) && Math.abs(footY - ceilingPosition) <= landingPrecision)
-							) {
-						 // Let the entity pass  
+					ArrayList<Integer> intervalModes = new ArrayList<Integer>();
+					intervalModes.add(1);
+					if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+						intervalModes.add(2);
 					}
-					else if (  ( rightwardMovement && aCeiling.isPositionAtX1(footX,entity, 1)  && headY > ceilingPosition && headY < ceilingPosition + entity.getHeight())
+					if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+						intervalModes.add(3);
+					}
+				
+					for (int m = 0; m < intervalModes.size(); m++) {
+						Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
+						int aCeilingIntervalMode = intervalModes.get(m);
+						double x1 = aCeiling.getX1(entity, aCeilingIntervalMode),  x2 = aCeiling.getX2(entity, aCeilingIntervalMode);
+						double startingCeilingPosition = aCeiling.getY1(entity, aCeilingIntervalMode),  endingCeilingPosition = aCeiling.getY2(entity, aCeilingIntervalMode);
+						double angle = aCeiling.getPlatformAngle(aCeilingIntervalMode);
+						// Have to compute ceilingPosition manually here because entity position is not actually updated until the while loop in navigate finishes
+						double ceilingPosition = aCeiling.getLandingPositionFromSpecificPosition(entity, footX, aCeilingIntervalMode);
+						
+						
+						// Previously used just the x coordinate of an interval to determine if entity was at interval endpoint, can't do this for nearly perpendicular intervals
+						double distanceBetweenHeadAndX1EndPoint = Math.sqrt((footX-x1)*(footX-x1) + (headY-startingCeilingPosition)*(headY-startingCeilingPosition));
+						double distanceBetweenHeadAndX2EndPoint = Math.sqrt((footX-x2)*(footX-x2) + (headY-endingCeilingPosition)*(headY-endingCeilingPosition));
+	
+						
+						// Test for ceiling acting as perpendicular wall
+						if ( ( (aCeiling.isPositionAtX1(footX,entity, aCeilingIntervalMode) || aCeiling.isPositionAtX2(footX,entity, aCeilingIntervalMode)) && Math.abs(footY - ceilingPosition) <= landingPrecision)
+								) {
+							 // Let the entity pass  
+						}
+						else if (  ( rightwardMovement && aCeiling.isPositionAtX1(footX,entity, aCeilingIntervalMode)  && headY > ceilingPosition && headY < ceilingPosition + entity.getHeight())
+								||
+								( leftwardMovement && aCeiling.isPositionAtX2(footX,entity, aCeilingIntervalMode) && headY > ceilingPosition && headY < ceilingPosition + entity.getHeight())
+								) {
+									// Ceiling acts as perpendicular wall
+									amountToMoveCeiling = 0.0;
+									amountToMove = 0.0;
+									return new double[] {dxToMove, dyToMove, amountToMove};
+						}
+						
+						
+						
+						if ( 
+							(rightwardMovement  &&  (footX > x1 ||  aCeiling.isPositionAtX1(footX,entity, aCeilingIntervalMode))  &&  footX < x2  &&  !aCeiling.isPositionAtX2(footX,entity, aCeilingIntervalMode)  &&  (Math.abs(angle) <= landingPrecision || angle < 0.0))
 							||
-							( leftwardMovement && aCeiling.isPositionAtX2(footX,entity, 1) && headY > ceilingPosition && headY < ceilingPosition + entity.getHeight())
-							) {
-								// Ceiling acts as perpendicular wall
-								amountToMoveCeiling = 0.0;
-								amountToMove = 0.0;
-								return new double[] {dxToMove, dyToMove, amountToMove};
-					}
-					
-					
-					
-					if ( 
-						(rightwardMovement  &&  (footX > x1 ||  aCeiling.isPositionAtX1(footX,entity, 1))  &&  footX < x2  &&  !aCeiling.isPositionAtX2(footX,entity, 1)  &&  (Math.abs(angle) <= landingPrecision || angle < 0.0))
-						||
-						 (leftwardMovement  &&  footX > x1  &&  (footX < x2 ||  aCeiling.isPositionAtX2(footX,entity, 1))  &&  !aCeiling.isPositionAtX1(footX,entity, 1)  &&  (Math.abs(angle) <= landingPrecision || angle > 0.0))      
-						 ) {
-							//	System.out.println("Within the bounds of a ceiling");
-								
-								if (creaturesCeiling == null) {
-		
-									if (headY < ceilingPosition + entity.getHeight() || Math.abs(headY - (ceilingPosition + entity.getHeight())) <= landingPrecision) {
-												creaturesCeiling = aCeiling;
-									}
+							 (leftwardMovement  &&  footX > x1  &&  (footX < x2 ||  aCeiling.isPositionAtX2(footX,entity, aCeilingIntervalMode))  &&  !aCeiling.isPositionAtX1(footX,entity, aCeilingIntervalMode)  &&  (Math.abs(angle) <= landingPrecision || angle > 0.0))      
+							 ) {
+								//	System.out.println("Within the bounds of a ceiling");
 									
-								}
-								else {
-									double creaturesCeilingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, 1);
-									
-									if ((headY < ceilingPosition + entity.getHeight() || Math.abs(headY - (ceilingPosition + entity.getHeight())) <= landingPrecision)
-										&& (ceilingPosition < creaturesCeilingCeilingPosition
-										|| Math.abs(ceilingPosition - creaturesCeilingCeilingPosition) <= landingPrecision)) {
-												creaturesCeiling = aCeiling;
-									}
-								}
-					}
-					else {
-								double relevantCeilingPosition = 0.0;
-								if (leftwardMovement) {
-									relevantCeilingPosition = endingCeilingPosition;
-								} else if (rightwardMovement) {
-									relevantCeilingPosition = startingCeilingPosition;
-								}
-		
-								if (headY < relevantCeilingPosition + entity.getHeight() || Math.abs(headY - (relevantCeilingPosition + entity.getHeight())) <= landingPrecision) {
+									if (creaturesCeiling == null) {
+			
+										if (headY < ceilingPosition + entity.getHeight() || Math.abs(headY - (ceilingPosition + entity.getHeight())) <= landingPrecision) {
+													creaturesCeiling = aCeiling;
+													creaturesCeilingIntervalMode = aCeilingIntervalMode;
+										}
 										
-										if (closestCeiling == null) {
-											if ( ( rightwardMovement && (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && (Math.abs(angle) <= landingPrecision || angle < 0.0))
-													||
-												( leftwardMovement && (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && (Math.abs(angle) <= landingPrecision || angle > 0.0))	) {
-				
-														closestCeiling = aCeiling;
-				
-											}
-				
+									}
+									else {
+										double creaturesCeilingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, creaturesCeilingIntervalMode);
+										
+										if ((headY < ceilingPosition + entity.getHeight() || Math.abs(headY - (ceilingPosition + entity.getHeight())) <= landingPrecision)
+											&& (ceilingPosition < creaturesCeilingCeilingPosition
+											|| Math.abs(ceilingPosition - creaturesCeilingCeilingPosition) <= landingPrecision)) {
+													creaturesCeiling = aCeiling;
+													creaturesCeilingIntervalMode = aCeilingIntervalMode;
 										}
-										else {
-				
-											if ( ( rightwardMovement && ( ( (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && (x1 < closestCeiling.getX1(entity, 1)) )
-													||
-													( Math.abs(x1 - closestCeiling.getX1(entity, 1)) <= landingPrecision && (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && startingCeilingPosition < closestCeiling.getY1(entity, 1)  )  )
-													&& (Math.abs(angle) <= landingPrecision || angle < 0.0)) 
-												||
-													(leftwardMovement && ( ( (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && (x2 > closestCeiling.getX2(entity, 1)) )
-													||
-													( Math.abs(x2 - closestCeiling.getX2(entity, 1)) <= landingPrecision && (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && endingCeilingPosition < closestCeiling.getY2(entity, 1)  )  )
-															&& (Math.abs(angle) <= landingPrecision || angle > 0.0))
-													) {
-				//ANGLES ANGLES ANGLES
-														closestCeiling = aCeiling;
+									}
+						}
+						else {
+									double relevantCeilingPosition = 0.0;
+									if (leftwardMovement) {
+										relevantCeilingPosition = endingCeilingPosition;
+									} else if (rightwardMovement) {
+										relevantCeilingPosition = startingCeilingPosition;
+									}
+			
+									if (headY < relevantCeilingPosition + entity.getHeight() || Math.abs(headY - (relevantCeilingPosition + entity.getHeight())) <= landingPrecision) {
+											
+											if (closestCeiling == null) {
+												if ( ( rightwardMovement && (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && (Math.abs(angle) <= landingPrecision || angle < 0.0))
+														||
+													( leftwardMovement && (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && (Math.abs(angle) <= landingPrecision || angle > 0.0))	) {
+					
+															closestCeiling = aCeiling;
+															closestCeilingIntervalMode = aCeilingIntervalMode;
+												}
+					
 											}
-										}
-								}
-								
+											else {
+					
+												if ( ( rightwardMovement && ( ( (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && (x1 < closestCeiling.getX1(entity, closestCeilingIntervalMode)) )
+														||
+														( Math.abs(x1 - closestCeiling.getX1(entity, closestCeilingIntervalMode)) <= landingPrecision && (x1 > footX || Math.abs(x1 - footX) <= landingPrecision) && startingCeilingPosition < closestCeiling.getY1(entity, closestCeilingIntervalMode)  )  )
+														&& (Math.abs(angle) <= landingPrecision || angle < 0.0)) 
+													||
+														(leftwardMovement && ( ( (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && (x2 > closestCeiling.getX2(entity, closestCeilingIntervalMode)) )
+														||
+														( Math.abs(x2 - closestCeiling.getX2(entity, closestCeilingIntervalMode)) <= landingPrecision && (x2 < footX || Math.abs(x2 - footX) <= landingPrecision) && endingCeilingPosition < closestCeiling.getY2(entity, closestCeilingIntervalMode)  )  )
+																&& (Math.abs(angle) <= landingPrecision || angle > 0.0))
+														) {
+															closestCeiling = aCeiling;
+															closestCeilingIntervalMode = aCeilingIntervalMode;
+												}
+											}
+									}
+									
+						}
 					}
 					
 				}
@@ -1070,26 +1086,26 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 				activeBackgrounds.get(0).setRecentInterval(creaturesCeiling);
 
 
-				startingCeilingPosition = creaturesCeiling.getY1(entity,1 );
-				endingCeilingPosition = creaturesCeiling.getY2(entity, 1);
+				startingCeilingPosition = creaturesCeiling.getY1(entity, creaturesCeilingIntervalMode);
+				endingCeilingPosition = creaturesCeiling.getY2(entity, creaturesCeilingIntervalMode);
 				
-				if (leftwardMovement && (creaturesCeiling.getX1(entity, 1) < closestCeiling.getX2(entity, 1) || Math.abs(creaturesCeiling.getX1(entity, 1) - closestCeiling.getX2(entity, 1)) <= landingPrecision) ) {
-					x1Value = closestCeiling.getX2(entity, 1);
-					startingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, closestCeiling.getX2(entity, 1), 1);
+				if (leftwardMovement && (creaturesCeiling.getX1(entity, creaturesCeilingIntervalMode) < closestCeiling.getX2(entity, closestCeilingIntervalMode) || Math.abs(creaturesCeiling.getX1(entity, creaturesCeilingIntervalMode) - closestCeiling.getX2(entity, closestCeilingIntervalMode)) <= landingPrecision) ) {
+					x1Value = closestCeiling.getX2(entity, closestCeilingIntervalMode);
+					startingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, closestCeiling.getX2(entity, closestCeilingIntervalMode), creaturesCeilingIntervalMode);
 				} else {
-					x1Value = creaturesCeiling.getX1(entity, 1);
+					x1Value = creaturesCeiling.getX1(entity, creaturesCeilingIntervalMode);
 				}
-				if (rightwardMovement && (creaturesCeiling.getX2(entity, 1) > closestCeiling.getX1(entity, 1) || Math.abs(creaturesCeiling.getX2(entity, 1) - closestCeiling.getX1(entity, 1)) <= landingPrecision) ) {
-					x2Value = closestCeiling.getX1(entity, 1);
-					endingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, closestCeiling.getX1(entity, 1), 1);
+				if (rightwardMovement && (creaturesCeiling.getX2(entity, creaturesCeilingIntervalMode) > closestCeiling.getX1(entity, closestCeilingIntervalMode) || Math.abs(creaturesCeiling.getX2(entity, creaturesCeilingIntervalMode) - closestCeiling.getX1(entity, closestCeilingIntervalMode)) <= landingPrecision) ) {
+					x2Value = closestCeiling.getX1(entity, closestCeilingIntervalMode);
+					endingCeilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, closestCeiling.getX1(entity, closestCeilingIntervalMode), creaturesCeilingIntervalMode);
 				} else { 
-					x2Value = creaturesCeiling.getX2(entity, 1);
+					x2Value = creaturesCeiling.getX2(entity, creaturesCeilingIntervalMode);
 				}
 				
-				angle = creaturesCeiling.getPlatformAngle(1);
+				angle = creaturesCeiling.getPlatformAngle(creaturesCeilingIntervalMode);
 				onCeiling = false;
 
-				ceilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, 1);
+				ceilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, creaturesCeilingIntervalMode);
 				//System.out.println("cP = "+ceilingPosition);
 				// new LP calculation method
 				//System.out.println("headY = "+headY);
@@ -1104,15 +1120,15 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 				//System.out.println("	CEILING: creaturesCeiling != null && closestCeiling == null");
 				hasCeilingPosition = true;
 				activeBackgrounds.get(0).setRecentInterval(creaturesCeiling);
-				x1Value = creaturesCeiling.getX1(entity,1);
-				x2Value = creaturesCeiling.getX2(entity,1);
-				angle = creaturesCeiling.getPlatformAngle(1);
+				x1Value = creaturesCeiling.getX1(entity,creaturesCeilingIntervalMode);
+				x2Value = creaturesCeiling.getX2(entity,creaturesCeilingIntervalMode);
+				angle = creaturesCeiling.getPlatformAngle(creaturesCeilingIntervalMode);
 				onCeiling = false;
 
-				startingCeilingPosition = creaturesCeiling.getY1(entity, 1);
-				endingCeilingPosition = creaturesCeiling.getY2(entity, 1);
+				startingCeilingPosition = creaturesCeiling.getY1(entity, creaturesCeilingIntervalMode);
+				endingCeilingPosition = creaturesCeiling.getY2(entity, creaturesCeilingIntervalMode);
 
-				ceilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, 1);
+				ceilingPosition = creaturesCeiling.getLandingPositionFromSpecificPosition(entity, footX, creaturesCeilingIntervalMode);
 				
 				if (Math.abs((headY - ceilingPosition)) <= landingPrecision) {
 					onCeiling = true;
@@ -1125,11 +1141,11 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 				hasCeilingPosition = false;
 				
 				if (leftwardMovement) {
-					x1Value = closestCeiling.getX2(entity,1);
+					x1Value = closestCeiling.getX2(entity,closestCeilingIntervalMode);
 					x2Value = 10.0;
 				} else if (rightwardMovement){
 					x1Value = 10.0;
-					x2Value = closestCeiling.getX1(entity,1);
+					x2Value = closestCeiling.getX1(entity,closestCeilingIntervalMode);
 				}
 				angle = 0.0;
 				onCeiling = false;
@@ -1382,50 +1398,62 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 
 				//creaturesInterval = null;
 				Interval ceilingInterval = null;
+				int ceilingIntervalMode = 1;
 
 				double footX = entity.getX();
-				double footY = entity.getY() - 0.5*entity.getHeight();
 				double headY = entity.getY() + 0.5*entity.getHeight();
 				
 				for (int a = 0; a < activeBackgrounds.size(); a++) {
 
 					for (int v = 0; v < activeBackgrounds.get(a).getCeilings().size(); v++) {
 						
-						Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
-						double x1 = aCeiling.getX1(entity,1),   x2 = aCeiling.getX2(entity,1);
-						double ceilingPosition = aCeiling.getLandingPosition(entity,1);
+						ArrayList<Integer> intervalModes = new ArrayList<Integer>();
+						intervalModes.add(1);
+						if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+							intervalModes.add(2);
+						}
+						if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+							intervalModes.add(3);
+						}
 						
-						if ( (footX > x1 || aCeiling.isPositionAtX1(footX,entity,1))   &&   (footX < x2 || aCeiling.isPositionAtX2(footX,entity,1)) ) {
-
-							if (ceilingInterval == null) {
-
-								if (headY < ceilingPosition || Math.abs(headY - ceilingPosition) <= landingPrecision) {
-									ceilingInterval = aCeiling;
-								}
-							}
-
-							else {
-
-								if ((entity.getY() + 0.5 * entity.getHeight() < activeBackgrounds.get(a).getCeilings()
-										.get(v).getLandingPosition(entity, 1)
-										|| Math.abs(entity.getY() + 0.5 * entity.getHeight()
-												- activeBackgrounds.get(a).getCeilings().get(v).getLandingPosition(
-														entity, 1)) <= landingPrecision)
-										&& (activeBackgrounds.get(a).getCeilings().get(v)
-												.getLandingPosition(entity, 1) < ceilingInterval
-														.getLandingPosition(entity, 1)
-												|| Math.abs(activeBackgrounds.get(a).getCeilings().get(v)
-														.getLandingPosition(entity, 1)
-														- ceilingInterval.getLandingPosition(
-																entity, 1)) <= landingPrecision)) {
-									ceilingInterval = activeBackgrounds.get(a).getCeilings().get(v);
-									if (Math.abs(10.271744144362101 - activeBackgrounds.get(a).getCeilings().get(v).getX1(entity, 1)) <= landingPrecision) {
-										
+						for (int m = 0; m < intervalModes.size(); m++) {
+							Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
+							int anIntervalMode = intervalModes.get(m);
+							double x1 = aCeiling.getX1(entity,anIntervalMode),   x2 = aCeiling.getX2(entity,anIntervalMode);
+							double ceilingPosition = aCeiling.getLandingPosition(entity,anIntervalMode);
+							
+							if ( (footX > x1 || aCeiling.isPositionAtX1(footX,entity,anIntervalMode))   &&   (footX < x2 || aCeiling.isPositionAtX2(footX,entity,anIntervalMode)) ) {
+	
+								if (ceilingInterval == null) {
+	
+									if (headY < ceilingPosition || Math.abs(headY - ceilingPosition) <= landingPrecision) {
+										ceilingInterval = aCeiling;
+										ceilingIntervalMode = anIntervalMode;
 									}
 								}
-
+	
+								else {
+	
+									if ((entity.getY() + 0.5 * entity.getHeight() < activeBackgrounds.get(a).getCeilings()
+											.get(v).getLandingPosition(entity, anIntervalMode)
+											|| Math.abs(entity.getY() + 0.5 * entity.getHeight()
+													- activeBackgrounds.get(a).getCeilings().get(v).getLandingPosition(
+															entity, anIntervalMode)) <= landingPrecision)
+											&& (activeBackgrounds.get(a).getCeilings().get(v)
+													.getLandingPosition(entity, anIntervalMode) < ceilingInterval
+															.getLandingPosition(entity, ceilingIntervalMode)
+													|| Math.abs(activeBackgrounds.get(a).getCeilings().get(v)
+															.getLandingPosition(entity, anIntervalMode)
+															- ceilingInterval.getLandingPosition(
+																	entity, ceilingIntervalMode)) <= landingPrecision)) {
+											ceilingInterval = activeBackgrounds.get(a).getCeilings().get(v);
+											ceilingIntervalMode = anIntervalMode;
+										
+									}
+	
+								}
+	
 							}
-
 						}
 					}
 				}
@@ -1433,7 +1461,7 @@ System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
 				double landingPosition = 0.0;
 				if (ceilingInterval != null) {
 
-					landingPosition = ceilingInterval.getLandingPosition(entity, 1);
+					landingPosition = ceilingInterval.getLandingPosition(entity, ceilingIntervalMode);
 
 					if (entity.getY() + 0.5 * entity.getHeight() + displacement < landingPosition
 							|| Math.abs(entity.getY() + 0.5 * entity.getHeight() + displacement

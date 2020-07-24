@@ -3,12 +3,10 @@ import org.joml.Vector2d;
 public class Interval {
 
 	static public double landingPrecision;    // static variables and methods are defined before the creation of an instances of an object and can be referenced as Class.variable/method
-	static final public int NONCLIFFTERRAIN = 1;
-	static final public int LEFTCLIFFTERRAIN = 2;
-	static final public int RIGHTCLIFFTERRAIN = 3;
-	static final public int NONCLIFFCEILING = 4;
-	static final public int LEFTCLIFFCEILING = 5;
-	static final public int RIGHTCLIFFCEILING = 6;
+	
+	static final public int NONCLIFF = 1;
+	static final public int LEFTCLIFF = 2;
+	static final public int RIGHTCLIFF = 3;
 	
 	private double x1;
 	private double x2;
@@ -36,7 +34,7 @@ public class Interval {
 	
 	public double getX1(Entity entity, int intervalMode) {
 
-		if (intervalMode == NONCLIFFTERRAIN) {
+		if (intervalMode == NONCLIFF) {
 			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
 			|| (getType() == 3 && getPlatformAngle(intervalMode) <= 0.0) ) {                        // width extend walls/ceilings
 				return this.x1 - 0.5*entity.getFeetWidth();
@@ -47,19 +45,25 @@ public class Interval {
 			}
 			return this.x1;																			// standard terrain
 		}
-		else if (intervalMode == LEFTCLIFFTERRAIN) {			
-			return this.x1 - 0.5*entity.getFeetWidth();												// left cliff terrain
+		else if (intervalMode == LEFTCLIFF) {			
+			return this.x1 - 0.5*entity.getFeetWidth();												// left cliff terrain, left cliff ceiling
 		}
-		else if (intervalMode == RIGHTCLIFFTERRAIN) {
-			return this.x2;																			// right cliff terrain
+		else if (intervalMode == RIGHTCLIFF) {
+			if (getType() == 1) {
+				return this.x2;																			// right cliff terrain
+			}
+			else if (getType() == 3) {
+				return this.x2 - 0.5*entity.getFeetWidth();
+			}
 		}
-		return this.x1;																				// default standard terrain
+		
+		return this.x1;																				// default non-cliff
 	}
 	
 	
 	public double getX2(Entity entity, int intervalMode) {
 
-		if (intervalMode == NONCLIFFTERRAIN) {
+		if (intervalMode == NONCLIFF) {
 			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
 			|| (getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {							// width extend walls/ceilings
 				return this.x2 - 0.5*entity.getFeetWidth();
@@ -70,13 +74,19 @@ public class Interval {
 			}
 			return this.x2;																			// standard terrain
 		}
-		else if (intervalMode == LEFTCLIFFTERRAIN) {
-			return this.x1;																			// left cliff terrain
+		else if (intervalMode == LEFTCLIFF) {
+			if (getType() == 1) {
+				return this.x1;																			// left cliff terrain
+			}
+			else if (getType() == 3) {		
+				return this.x1 + 0.5*entity.getFeetWidth();												// left cliff ceiling
+			}
 		}
-		else if (intervalMode == RIGHTCLIFFTERRAIN) {
-			return this.x2 + 0.5*entity.getFeetWidth();												// right cliff terrain
+		else if (intervalMode == RIGHTCLIFF) {
+			return this.x2 + 0.5*entity.getFeetWidth();												// right cliff terrain, right cliff ceiling
 		}
-		return this.x2;																				// default standard terrain
+		
+		return this.x2;																				// default non-cliff
 	}
 
 	public void setX1(int x1) {
@@ -93,15 +103,15 @@ public class Interval {
 		double footX = entity.getX();
 		
 
-		if (intervalMode == NONCLIFFTERRAIN) {
+		if (intervalMode == NONCLIFF) {
 			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
 		}
-		else if (intervalMode == LEFTCLIFFTERRAIN) {
+		else if (intervalMode == LEFTCLIFF) {
 			if (isLeftCliff()) {
 				return this.y1;
 			}
 		}
-		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+		else if (intervalMode == RIGHTCLIFF) {
 			if (isRightCliff()) {
 				return this.y2;
 			}
@@ -114,15 +124,15 @@ public class Interval {
 
 		double footX = x;
 
-		if (intervalMode == NONCLIFFTERRAIN) {
+		if (intervalMode == NONCLIFF) {
 			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
 		}
-		else if (intervalMode == LEFTCLIFFTERRAIN) {
+		else if (intervalMode == LEFTCLIFF) {
 			if (isLeftCliff()) {
 				return this.y1;
 			}
 		}
-		else if (intervalMode == RIGHTCLIFFTERRAIN) {
+		else if (intervalMode == RIGHTCLIFF) {
 			if (isRightCliff()) {
 				return this.y2;
 			}
@@ -134,7 +144,7 @@ public class Interval {
 	
 
 	public double getY1(Entity entity, int intervalMode) {
-		if (intervalMode == RIGHTCLIFFTERRAIN) {
+		if (intervalMode == RIGHTCLIFF) {
 			return this.y2;
 		}
 		return this.y1;
@@ -146,7 +156,7 @@ public class Interval {
 	
 
 	public double getY2(Entity entity, int intervalMode) {
-		if (intervalMode == LEFTCLIFFTERRAIN) {
+		if (intervalMode == LEFTCLIFF) {
 			return this.y1;
 		}
 		return this.y2;
@@ -159,7 +169,7 @@ public class Interval {
 
 	public double getPlatformAngle(int intervalMode) {
 
-		if (intervalMode == NONCLIFFTERRAIN) {
+		if (intervalMode == NONCLIFF) {
 			return Math.atan2(y2 - y1,x2 - x1);                   // dont need to use getX() or getY() for (potentially) width extended endpoints here since angle won't change
 		}
 		return 0.0;
@@ -169,13 +179,16 @@ public class Interval {
 
 	public boolean isLeftCliff() {
 		if ( this.leftInterval == null) {
-			if (getType() == 1) {
+			if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) > 0.0)) {
 				return true;
 			}
 			return false;
 		}
 		else {
-			if (getType() == 1 && this.leftInterval.getType() != 1) {
+			if ((getType() == 1 && this.leftInterval.getType() != 1)
+			|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) > 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
+				   (this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) < 0.0)) )
+			){
 				return true;
 			}
 			return false;
@@ -185,13 +198,15 @@ public class Interval {
 
 	public boolean isRightCliff() {
 		if (this.rightInterval == null) {
-			if (getType() == 1) {
+			if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) < 0.0)) {
 				return true;
 			}
 			return false;
 		}
 		else {
-			if (this.getType() == 1 && this.rightInterval.getType() != 1) {
+			if ((this.getType() == 1 && this.rightInterval.getType() != 1)
+			|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) < 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
+					(this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) > 0.0)) )) {
 				return true;
 			}
 			return false;
