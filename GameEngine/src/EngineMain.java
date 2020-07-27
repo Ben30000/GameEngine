@@ -5197,7 +5197,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	            }
   				double taskComplete = System.nanoTime();  				
 
-  				//System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
+  				System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
 
   				//lake1.render();
   				//testStageItem1.render();

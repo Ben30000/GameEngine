@@ -627,6 +627,7 @@ public class WorldUpdater {
 						double x1 = anInterval.getX1(entity, anIntervalMode),   x2 = anInterval.getX2(entity, anIntervalMode);
 						double startingPosition = anInterval.getY1(entity, anIntervalMode),   endingPosition = anInterval.getY2(entity, anIntervalMode);
 						double landingPosition = anInterval.getLandingPosition(entity, anIntervalMode);
+						double angle = anInterval.getPlatformAngle(anIntervalMode);
 						
 						if ( 
 						(rightwardMovement && (footX > x1 ||  anInterval.isPositionAtX1(footX,entity, anIntervalMode)) && (footX < x2) && !(anInterval.isPositionAtX2(footX,entity,anIntervalMode)) )
@@ -644,13 +645,26 @@ public class WorldUpdater {
 								}
 								else {
 									
+									
 									if ((footY > landingPosition || Math.abs(footY - landingPosition) <= landingPrecision)
-										&& (landingPosition > creaturesInterval.getLandingPosition(entity,intervalMode)
-										|| Math.abs(landingPosition - creaturesInterval.getLandingPosition(entity,intervalMode)) <= landingPrecision)) {
-										System.out.println("ALSO WITHIN Y BOUNDS");
+										&& (Math.abs(landingPosition - creaturesInterval.getLandingPosition(entity,intervalMode)) <= landingPrecision)
+										&& ( (leftwardMovement && angle <= creaturesInterval.getPlatformAngle(intervalMode)) ||
+												(rightwardMovement && angle >= creaturesInterval.getPlatformAngle(intervalMode))  )
+										) {
+										// This case is for terrain that intersects other terrain, when feet are at the intersection point
+												System.out.println("TERRAIN-TERRAIN INTERSECTION!");
+										//		System.exit(0);
 												creaturesInterval = anInterval;
 												intervalMode = anIntervalMode;
 									}
+									else if ((footY > landingPosition || Math.abs(footY - landingPosition) <= landingPrecision)
+											&& (landingPosition > creaturesInterval.getLandingPosition(entity,intervalMode))) {
+										// Otherwise, just pick the terrain with landing position closest to feet
+										creaturesInterval = anInterval;
+										intervalMode = anIntervalMode;
+									}
+										
+										
 								}
 						}
 						else {
@@ -697,6 +711,67 @@ public class WorldUpdater {
 			boolean onPlatform = false, hasLandingPosition = false;
 			
 			activeBackgrounds.get(0).setRecentInterval(null);
+			
+			/*
+			 *  See if another terrain intersects this interval before the relevant end point
+			 */
+			double closestIntersectionDistance = 10000000000000.0;
+			double closestIntersectionX = 0.0, closestIntersectionY = 0.0;
+			if (creaturesInterval != null) {
+				
+				for (int a = 0; a < activeBackgrounds.size(); a++) {
+					for (int v = 0; v < activeBackgrounds.get(a).getIntervals().size(); v++) {
+					
+						// Check if this interval is a left and/or right cliff
+						ArrayList<Integer> intervalModes = new ArrayList<Integer>(); // mode == 1: standard, mode == 2: leftCliff, mode == 3: rightCliff
+						intervalModes.add(1);
+						if (activeBackgrounds.get(a).getIntervals().get(v).isLeftCliff()) {
+							intervalModes.add(2);
+						}
+						if (activeBackgrounds.get(a).getIntervals().get(v).isRightCliff()) {
+							intervalModes.add(3);
+						}
+						
+						for (int m = 0; m < intervalModes.size(); m++) {
+							Interval anInterval = activeBackgrounds.get(a).getIntervals().get(v);
+							int anIntervalMode = intervalModes.get(m);
+							double x1 = anInterval.getX1(entity, anIntervalMode),   x2 = anInterval.getX2(entity, anIntervalMode);
+							double y1 = anInterval.getY1(entity, anIntervalMode),   y2 = anInterval.getY2(entity, anIntervalMode);
+							double creaturesIntervalX1 = creaturesInterval.getX1(entity, intervalMode), creaturesIntervalX2 = creaturesInterval.getX2(entity, intervalMode);
+							double creaturesIntervalY1 = creaturesInterval.getY1(entity, intervalMode), creaturesIntervalY2 = creaturesInterval.getY2(entity, intervalMode);
+							double landingPositionAtFootX = creaturesInterval.getLandingPositionFromSpecificPosition(entity, footX, intervalMode);
+							
+							double[] terrainTerrainIntersectionResult = lineIntersection(x1,y1,  x2,y2,    creaturesIntervalX1,creaturesIntervalY1,  creaturesIntervalX2,creaturesIntervalY2);
+							if (terrainTerrainIntersectionResult != null) {
+								System.out.println("~ Terrain-terrain intersection ~");
+								System.out.println("(x1, y1) = "+x1+", "+y1+" and (x2,y2) = "+x2+", "+ y2);
+								System.out.println("(creaturesX1, creaturesY1) = "+creaturesIntervalX1+", "+creaturesIntervalY1+" and (creaturesX2,creaturesY2) = "+creaturesIntervalX2+", "+ creaturesIntervalY2);
+								System.out.println("Entity bounding point: (x,y) = "+footX+", "+landingPositionAtFootX);
+								System.out.println("rightwardMovement bounding point: (x,y) = "+creaturesIntervalX2+", "+creaturesIntervalY2);
+								System.out.println("intersectionPoint: (x,y) = "+terrainTerrainIntersectionResult[0]+", "+terrainTerrainIntersectionResult[1]);
+								if ((leftwardMovement && isWithinBoundsExclusive(terrainTerrainIntersectionResult[0],terrainTerrainIntersectionResult[1], creaturesIntervalX1, creaturesIntervalY1, footX, landingPositionAtFootX))
+									||
+									(rightwardMovement && isWithinBoundsExclusive(terrainTerrainIntersectionResult[0],terrainTerrainIntersectionResult[1], footX, landingPositionAtFootX, creaturesIntervalX2, creaturesIntervalY2))
+								) {
+									System.out.println("It intercepts terrain!");
+									double intersectionDistance = Math.sqrt((terrainTerrainIntersectionResult[0] - footX)*(terrainTerrainIntersectionResult[0] - footX) +
+											(terrainTerrainIntersectionResult[1] - landingPositionAtFootX)*(terrainTerrainIntersectionResult[1] - landingPositionAtFootX) );
+									if (intersectionDistance < closestIntersectionDistance) {
+										closestIntersectionDistance = intersectionDistance;
+										closestIntersectionX = terrainTerrainIntersectionResult[0];
+										closestIntersectionY = terrainTerrainIntersectionResult[1];											
+									}
+									
+								}
+							}
+				
+						}
+					
+					}
+				}
+				
+			}
+			
 			
 			
 			if (creaturesInterval != null && closestInterval != null) {
@@ -786,13 +861,34 @@ public class WorldUpdater {
 				onPlatform = false;
 			}
 			
-	
+			/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+			 * FINALLY, UPDATE LEFT OR RIGHT ENDPOINT IF A TERRAIN INTERSECTS BEFORE ENDPOINT  *
+			 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+			if (closestIntersectionDistance <= 10.0) {
+				System.out.println("closestIntersectionDistance <= 10.0");
+		//		System.exit(0);
+			}
+			if (creaturesInterval != null) {
+				double landingPositionAtFootX = creaturesInterval.getLandingPositionFromSpecificPosition(entity, footX, intervalMode);
+				if (leftwardMovement) {
+					double distanceToLeftEndpoint = Math.sqrt( (x1Value - footX)*(x1Value - footX) + (startingPosition - landingPositionAtFootX)*(startingPosition - landingPositionAtFootX) );
+					if (closestIntersectionDistance < distanceToLeftEndpoint) {
+						x1Value = closestIntersectionX;
+						startingPosition = closestIntersectionY;
+					}
+				}
+				else if (rightwardMovement) {
+					double distanceToRightEndpoint = Math.sqrt( (x2Value - footX)*(x2Value - footX) + (endingPosition - landingPositionAtFootX)*(endingPosition - landingPositionAtFootX) );
+					if (closestIntersectionDistance < distanceToRightEndpoint) {
+						x2Value = closestIntersectionX;
+						endingPosition = closestIntersectionY;
+					}
+				}
+			}
 			
 			System.out.println("NAVIGATE: onPlatform is "+onPlatform);
-			//System.out.println("NAVIGATE: hasLandingPosition is "+hasLandingPosition);
-			
 			System.out.println("NAVIGATE: x1Value, x2Value: "+x1Value+", "+x2Value);
-			//System.out.println("NAVIGATE: footX: "+footX);
+
 			
 			double intervalEndpointX = 0.0;
 			
@@ -2091,6 +2187,29 @@ public class WorldUpdater {
 		}
 		return false;
 		
+	}
+	
+	public boolean isWithinBoundsInclusive(double pointX, double pointY,  double x1, double y1,  double x2, double y2) {
+		if ( ( (pointX > Math.min(x1, x2) || Math.abs(pointX - Math.min(x1, x2)) <= landingPrecision)   &&   (pointX < Math.max(x1, x2)) || Math.abs(pointX - Math.max(x1, x2)) <= landingPrecision)  &&
+			( (pointY > Math.min(y1, y2) || Math.abs(pointY - Math.min(y1, y2)) <= landingPrecision)   &&   (pointY < Math.max(y1, y2)) || Math.abs(pointY - Math.max(y1, y2)) <= landingPrecision)
+			)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isWithinBoundsExclusive(double pointX, double pointY,  double x1, double y1,  double x2, double y2) {
+		
+		if ( (pointX > Math.min(x1, x2) || Math.abs(pointX - Math.min(x1, x2)) <= landingPrecision)  &&   (pointX < Math.max(x1, x2) || Math.abs(pointX - Math.max(x1, x2)) <= landingPrecision)  &&
+			 (pointY > Math.min(y1, y2) || Math.abs(pointY - Math.min(y1, y2)) <= landingPrecision)   &&   (pointY < Math.max(y1, y2) || Math.abs(pointY - Math.max(y1, y2)) <= landingPrecision) 
+			&& !(Math.abs(pointX - x1) <= landingPrecision && Math.abs(pointY - y1) <= landingPrecision)
+			&& !(Math.abs(pointX - x2) <= landingPrecision && Math.abs(pointY - y2) <= landingPrecision)
+			)
+		{
+			return true;
+		}
+		return false;
 	}
 	
 }
