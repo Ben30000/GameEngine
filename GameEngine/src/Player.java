@@ -219,17 +219,16 @@ public class Player implements Entity {
 		this.motionVector = new Vector2d(0.0,0.0);
 		this.slopedWallAngle = 0.0;
 		x = -7.0;
-		x = 5.9;
-		x = 7.09;
 		y = -12.27;
 		z = -5.0;
 		this.height = 0.50;
 		width = 0.50;
-		feetWidth = 0.480;
+		feetWidth = 0.50;
 		feetOSet = 10;
 		feetHeight = 5;
 		dx = 0;
 		dy = 0;
+		x = 10.765323597192765 + 0.5*this.feetWidth;
 		this.initialFallVelocity = 1.66;
 		this.initialFallVelocity = 0.0066;
 		

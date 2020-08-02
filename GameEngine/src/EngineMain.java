@@ -586,8 +586,9 @@ public class EngineMain {
 					 if ( key == GLFW_KEY_R && action == GLFW_PRESS ) {
 						
 					  if (sequence == "Level") {
-						  player.setX(10.0);
-						  player.setY(-15.0);
+						  player.setX(6.528106984053233);
+						  //player.setX(6.528106984053233 + 0.5*0.48);
+						  player.setY(-17.0);
 						  
 					  }
 					  else if (sequence == "Main Menu") {
@@ -5197,7 +5198,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	            }
   				double taskComplete = System.nanoTime();  				
 
-  				System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
+  				//System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
 
   				//lake1.render();
   				//testStageItem1.render();
@@ -6792,7 +6793,8 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 */
 					 
 						Interval.landingPrecision = this.landingPrecision;
-
+						Camera.landingPrecision = this.landingPrecision;
+						
 				        String worldOneTerrain = "C:/StageItems/WORLD_INTERVAL_DATA_1.txt";
 				        
 				        // These lists are used for the sake of loading an Interval's neighboring intervals
@@ -6871,9 +6873,19 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            for (int g = 0; g < intervalNeighborIndices.size(); g++) {
 				            	System.out.println("neighbors: "+intervalNeighborIndices.get(g)[0]+" and "+intervalNeighborIndices.get(g)[1]);
 				            	char intervalLeftNeighborType = intervalNeighborIndices.get(g)[0].charAt(0);
-				            	int intervalLeftNeighborIndex = Character.getNumericValue(intervalNeighborIndices.get(g)[0].charAt(1));
 				            	char intervalRightNeighborType = intervalNeighborIndices.get(g)[1].charAt(0);
-				            	int intervalRightNeighborIndex = Character.getNumericValue(intervalNeighborIndices.get(g)[1].charAt(1));
+				            	int intervalLeftNeighborIndex = -1;
+				            	int intervalRightNeighborIndex = -1;
+				            	if (Character.compare(intervalLeftNeighborType, 't') == 0 || Character.compare(intervalLeftNeighborType, 'w') == 0 || Character.compare(intervalLeftNeighborType, 'c') == 0 
+				            	) {
+				            		intervalLeftNeighborIndex = Integer.parseInt(intervalNeighborIndices.get(g)[0].substring(1));
+				            	}
+				            	if (Character.compare(intervalRightNeighborType, 't') == 0 || Character.compare(intervalRightNeighborType, 'w') == 0 || Character.compare(intervalRightNeighborType, 'c') == 0
+					            ) {
+					            	intervalRightNeighborIndex = Integer.parseInt(intervalNeighborIndices.get(g)[1].substring(1));
+					            }
+				            	System.out.println("leftNeighborIndex = "+ intervalLeftNeighborIndex);
+				            	System.out.println("rightNeighborIndex = "+ intervalRightNeighborIndex);
 				            	
 				            	if (Character.compare(intervalLeftNeighborType, 't') == 0) {
 				            		allIntervals.get(g).setLeftInterval(testBG1.getIntervals().get(intervalLeftNeighborIndex));

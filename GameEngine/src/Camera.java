@@ -6,8 +6,17 @@ public class Camera {
 	private double eyeDX, eyeDY, eyeDZ;
 	private double vPointDX, vPointDY, vPointDZ;
 	
+	private boolean panningLeft, panningRight;
 	private boolean panningUp, panningDown;
 	private double targetVerticalPosition;
+	
+	private double targetHorizontalDistanceRightOfEntity = 0.45, targetHorizontalDistanceLeftOfEntity = 0.45;
+	private double minHorizontalPanSpeed = 0.0032;
+	private boolean panningHorizontally;
+	private double currentTargetEyeX;
+	
+	static public double landingPrecision;
+	
 	
 	public Camera(double eyeX,double eyeY,double eyeZ, double vPointX, double vPointY, double vPointZ) {
 
@@ -19,6 +28,7 @@ public class Camera {
 		this.vPointY = vPointY;
 		this.vPointZ = vPointZ;
 		
+		this.panningHorizontally = false;
 		this.panningUp = false;
 		this.panningDown = false;
 	}
@@ -123,12 +133,6 @@ public class Camera {
 		
 		this.eyeX = this.eyeX + this.eyeDX;
 		this.eyeY = this.eyeY + this.eyeDY;
-		
-		// for testing POM
-	//	if (this.eyeY <= -19.50) {
-			//this.eyeY = -19.50;
-	//	}
-		
 		this.eyeZ = this.eyeZ + this.eyeDZ;
 		
 	}
@@ -163,4 +167,89 @@ public class Camera {
 	public void setTargetVerticalPosition(double targetVerticalPosition) {
 		this.targetVerticalPosition = targetVerticalPosition;
 	}
+	
+	public void panHorizontally(Entity entity) {
+		
+		boolean leftEntityMotion = false, rightEntityMotion = false;
+		if (entity.getMotionVector().x < 0.0) {
+			leftEntityMotion = true;
+		}
+		else if (entity.getMotionVector().x > 0.0) {
+			rightEntityMotion = true;
+		}
+		double cameraSpeedScale = 0.024;
+		
+		if (!(Math.abs(getEyeX() - (entity.getX() + this.targetHorizontalDistanceRightOfEntity)) <= landingPrecision) && (rightEntityMotion
+			|| entity.getFacingDirection().compareTo("right") == 0) ) {
+				this.panningHorizontally = true;
+				this.currentTargetEyeX = entity.getX() + this.targetHorizontalDistanceRightOfEntity; 
+					
+		}
+
+		if (!(Math.abs(getEyeX() - (entity.getX() - this.targetHorizontalDistanceLeftOfEntity)) <= landingPrecision) && (leftEntityMotion
+			|| entity.getFacingDirection().compareTo("left") == 0) ) {
+				this.panningHorizontally = true;
+				this.currentTargetEyeX = entity.getX() - this.targetHorizontalDistanceLeftOfEntity;
+		}
+
+
+		if (this.panningHorizontally) {
+
+			double cameraDXAbsolute = Math.max(cameraSpeedScale * Math.abs(this.currentTargetEyeX - getEyeX()), this.minHorizontalPanSpeed);
+			double cameraDX = Math.abs(this.currentTargetEyeX - getEyeX()) / (this.currentTargetEyeX - getEyeX())  *  cameraDXAbsolute;
+			double initialEyeX = getEyeX();
+			double newEyeX = getEyeX() + cameraDX;
+			
+			if ( (this.currentTargetEyeX > Math.min(initialEyeX, newEyeX) || Math.abs(this.currentTargetEyeX - Math.min(initialEyeX, newEyeX)) <= landingPrecision) && (this.currentTargetEyeX < Math.max(initialEyeX, newEyeX) || Math.abs(this.currentTargetEyeX - Math.max(initialEyeX, newEyeX)) <= landingPrecision)) {
+
+
+				double closingDistance = this.currentTargetEyeX - getEyeX();
+
+				setEyeDX(1.0*closingDistance);
+				setEyeDY(0.0);
+				setEyeDZ(0.0);
+				setVPointDX(1.0*closingDistance);
+				setVPointDY(0.0);
+				setVPointDZ(0.0);
+				moveEye();
+				moveVPoint();
+
+				this.panningHorizontally = false;
+				
+			} else {
+				setEyeDX(1.0*cameraDX);
+				setEyeDY(0.0);
+				setEyeDZ(0.0);
+				setVPointDX(1.0*cameraDX);
+				setVPointDY(0.0);
+				setVPointDZ(0.0);
+				
+				moveEye();
+				moveVPoint();
+			}
+		}
+
+
+	}
+
+	public void panVertically(Entity entity) {
+		
+	}
+
+	public boolean isPanningLeft() {
+		return panningLeft;
+	}
+
+	public void setPanningLeft(boolean panningLeft) {
+		this.panningLeft = panningLeft;
+	}
+
+	public boolean isPanningRight() {
+		return panningRight;
+	}
+
+	public void setPanningRight(boolean panningRight) {
+		this.panningRight = panningRight;
+	}
+	
 }

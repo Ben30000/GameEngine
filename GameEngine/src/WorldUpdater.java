@@ -16,10 +16,8 @@ public class WorldUpdater {
 	private Player player;
 	private boolean glide;
 	private int glideCounter = 2;
-	private boolean adjustCameraRightMovement;
 	private boolean rightKeyPressed;
 	private boolean leftKeyPressed;
-	private boolean adjustCameraLeft;
 	private boolean finishedCameraShift;
 	private boolean leftKeyR;
 	private boolean rightKeyR;
@@ -35,8 +33,6 @@ public class WorldUpdater {
 	private double gravityAcceleration;
 	private double displacement;
 	private double landingPrecision;
-	private double cameraSpeedScale = 0.02;                // Was 0.023
-	private double bGBefore, bGAfter;
 	boolean eventHappened = false;
 	private double fallConstant1, fallConstant2;
 	private double jumpConstant1, jumpConstant2;
@@ -53,10 +49,8 @@ public class WorldUpdater {
 		totalBGDX = 0;
 		totalBGDY = 0;
 		player = p;
-		adjustCameraRightMovement = false;
 		rightKeyPressed = false;       
 		leftKeyPressed = false;
-		adjustCameraLeft = false;
 		glide = false;
 		busy = false;
 		glideCounter = 2;
@@ -108,7 +102,7 @@ public class WorldUpdater {
 		
 		// Camera Work
 		
-		//this.panCameraHorizontally(mainCamera, player);
+		mainCamera.panHorizontally(player);
 		//this.panCameraVertically(mainCamera, player);
 
 		double pYB42 = player.getY() - 0.5 * player.getHeight();
@@ -181,17 +175,19 @@ public class WorldUpdater {
 		double playerYBefore = player.getY();
 		boolean playerFallingBefore = player.getFalling();
 		
-		if (isBelowPlatform(player, player.getX(),player.getY()-0.5*player.getHeight())) {
-			System.out.println("BEFORE JUMP OR FALL, BELOW PLATFORM");
-			//System.exit(0);
-		}
 		
+		
+		if (isBelowPlatform(player, player.getX(), player.getY() - 0.5*player.getHeight())) {
+			System.out.println("IS BELOW PLATFORM: BEFORE jumpOrFall");
+			System.exit(0);
+		}
 		this.jumpOrFall(player);
-		
-		if (isBelowPlatform(player, player.getX(),player.getY()-0.5*player.getHeight())) {
-			System.out.println("AFTER JUMP OR FALL, BELOW PLATFORM");
-			//System.exit(0);
+		if (isBelowPlatform(player, player.getX(), player.getY() - 0.5*player.getHeight())) {
+			System.out.println("IS BELOW PLATFORM: AFTER jumpOrFall");
+			System.exit(0);
 		}
+		
+		
 		
 		double playerYAfter = player.getY();
 		
@@ -217,14 +213,14 @@ public class WorldUpdater {
 		
 		if (isBelowPlatform(player, player.getX(),player.getY()-0.5*player.getHeight())) {
 			System.out.println("BEFORE NAVIGATE OR FALL, BELOW PLATFORM");
-			//System.exit(0);
+			System.exit(0);
 		}
 		
 		this.navigate(player, motionDirectionPlayer, amntToMove, 1);
 		
 		if (isBelowPlatform(player, player.getX(),player.getY()-0.5*player.getHeight())) {
 			System.out.println("AFTER NAVIGATE OR FALL, BELOW PLATFORM");
-			//System.exit(0);
+			System.exit(0);
 		}
 		
 		double playerXAfter = player.getX();
@@ -306,6 +302,10 @@ public class WorldUpdater {
 		
 		
 		// Check if a ceiling will stop movement while on a terrain platforrm, or if it will alter trajectory while in air
+		if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
+			System.out.println("IS BELOW PLATFORM: BEFORE checkForCeiling");
+			System.exit(0);
+		}
 		double[] deltasAndAmountToMove = this.checkForCeiling(entity, totalAmountToMove, Math.abs(intervalDistanceToMove), entitiesInterval, entitiesIntervalMode, motionVector);
 		double footX = entity.getX(),   footY = entity.getY() - 0.5*entity.getHeight();
 		double newFootX = entity.getX() + deltasAndAmountToMove[0],   newFootY = entity.getY() - 0.5*entity.getHeight() + deltasAndAmountToMove[1];
@@ -313,9 +313,9 @@ public class WorldUpdater {
 		double finalDX = tenativeDX, finalDY = tenativeDY;
 		double finalAmountMoved = deltasAndAmountToMove[2];
 		// Finally, Check if a sloped wall will intercept the final movement
-
-		System.out.println("newFootX = "+newFootX+" newFootY = "+newFootY);
-		double closestIntersectionDistance = -1.0;
+		System.out.println("    initialFootX = "+footX+" initialFootY = "+footY);
+		System.out.println("	newFootX = "+newFootX+" newFootY = "+newFootY);
+		Double closestIntersectionDistance = Double.MAX_VALUE;
 		
 		
 		for (int k = 0; k < activeBackgrounds.size(); k++) {
@@ -342,8 +342,12 @@ public class WorldUpdater {
 								double someDY = wallIntersectionResult[1] - footY;
 								double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
 
-								if (closestIntersectionDistance < 0.0    ||    intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
+								if (intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
 									System.out.println("/////// WALLED");
+									System.out.println("wallAngle = "+wallAngle);
+									System.out.println("aWall.isPositionAtX1(wallIntersectionResult[0],entity,1) = "+aWall.isPositionAtX1(wallIntersectionResult[0],entity,1));
+									System.out.println("wallIntersectionResult[0] = "+wallIntersectionResult[0]);
+									System.out.println("x1 = "+x1);
 									closestIntersectionDistance = intersectionDistance;
 									finalDX = someDX;
 									finalDY = someDY;
@@ -372,7 +376,7 @@ public class WorldUpdater {
 						    		double someDX = perpendicularPartOfWallIntersectionResult[0] - footX;
 									double someDY = perpendicularPartOfWallIntersectionResult[1] - footY;
 									double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
-									if (closestIntersectionDistance < 0.0    ||    intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
+									if (intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
 										System.out.println("|||||| WALLED: PERPENDICULAR");
 										closestIntersectionDistance = intersectionDistance;
 										finalDX = someDX;
@@ -395,6 +399,10 @@ public class WorldUpdater {
 		entity.setDX(0.0);
 		entity.setDY(0.0);
 		
+		if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
+			System.out.println("IS BELOW PLATFORM: AFTER checkForCeiling and wall tests");
+			System.exit(0);
+		}
 		return finalAmountMoved;
 
 
@@ -443,11 +451,7 @@ public class WorldUpdater {
 	public boolean getBusy() {
 		return busy;
 	}
-/*
-	public ArrayList<DependentScrollingBackground> getDSBs() {
-		return d;
-	}
-*/
+
 	public void setGlide(boolean s) {
 		glide = s;
 	}
@@ -460,51 +464,6 @@ public class WorldUpdater {
 		this.glideCounter = glideCounter;
 	}
 
-	public boolean getAdjustCameraRightMovement() {
-		return adjustCameraRightMovement;
-	}
-
-	public void setAdjustCameraRightMovement(boolean s) {
-		adjustCameraRightMovement = s;
-	}
-
-	public boolean getAdjustCameraLeftMovement() {
-		return adjustCameraLeft;
-	}
-
-	public void setAdjustCameraLeftMovement(boolean s) {
-		adjustCameraLeft = s;
-	}
-
-
-
-	public void bgBefore() {
-		eventHappened = true;
-		for (int j = 0; j < backgrounds.size(); j++) {
-			bGBefore = backgrounds.get(j).getX();
-		}
-	}
-
-	public void bgAfter() {
-
-		for (int j = 0; j < backgrounds.size(); j++) {
-
-			bGAfter = backgrounds.get(j).getX();
-		}
-
-		double delta = Math.abs(bGAfter - bGBefore);
-
-		if (delta > 2.0) {
-			System.out.println("          ########################################");
-			System.out.println("    #####################################################");
-			System.out.println("###############################################################");
-			System.out.println("  The World delta was very large, at " + delta);
-			System.out.println("###############################################################");
-			System.out.println("    #####################################################");
-			System.out.println("          ########################################");
-			System.exit(0);
-		}
-	}
 
 	public double[] lineIntersection(double x1, double y1, double x2, double y2, double a1, double b1, double a2, double b2) {
 		// returns {intersectionPointX, intersectionPointY} or null if lines do not intersect
@@ -707,7 +666,7 @@ public class WorldUpdater {
 			}
 
 			
-			double x1Value = 0.0, x2Value = 0.0, startingPosition = 0.0, endingPosition = 0.0, landingPosition, angle = 0.0;
+			double x1Value = 0.0, x2Value = 0.0, startingPosition = 0.0, endingPosition = 0.0, landingPosition = 0.0, angle = 0.0;
 			boolean onPlatform = false, hasLandingPosition = false;
 			
 			activeBackgrounds.get(0).setRecentInterval(null);
@@ -715,7 +674,7 @@ public class WorldUpdater {
 			/*
 			 *  See if another terrain intersects this interval before the relevant end point
 			 */
-			double closestIntersectionDistance = 10000000000000.0;
+			double closestIntersectionDistance = Double.MAX_VALUE;
 			double closestIntersectionX = 0.0, closestIntersectionY = 0.0;
 			if (creaturesInterval != null) {
 				
@@ -743,12 +702,12 @@ public class WorldUpdater {
 							
 							double[] terrainTerrainIntersectionResult = lineIntersection(x1,y1,  x2,y2,    creaturesIntervalX1,creaturesIntervalY1,  creaturesIntervalX2,creaturesIntervalY2);
 							if (terrainTerrainIntersectionResult != null) {
-								System.out.println("~ Terrain-terrain intersection ~");
-								System.out.println("(x1, y1) = "+x1+", "+y1+" and (x2,y2) = "+x2+", "+ y2);
-								System.out.println("(creaturesX1, creaturesY1) = "+creaturesIntervalX1+", "+creaturesIntervalY1+" and (creaturesX2,creaturesY2) = "+creaturesIntervalX2+", "+ creaturesIntervalY2);
-								System.out.println("Entity bounding point: (x,y) = "+footX+", "+landingPositionAtFootX);
-								System.out.println("rightwardMovement bounding point: (x,y) = "+creaturesIntervalX2+", "+creaturesIntervalY2);
-								System.out.println("intersectionPoint: (x,y) = "+terrainTerrainIntersectionResult[0]+", "+terrainTerrainIntersectionResult[1]);
+							//	System.out.println("~ Terrain-terrain intersection ~");
+							//	System.out.println("(x1, y1) = "+x1+", "+y1+" and (x2,y2) = "+x2+", "+ y2);
+							//	System.out.println("(creaturesX1, creaturesY1) = "+creaturesIntervalX1+", "+creaturesIntervalY1+" and (creaturesX2,creaturesY2) = "+creaturesIntervalX2+", "+ creaturesIntervalY2);
+							//	System.out.println("Entity bounding point: (x,y) = "+footX+", "+landingPositionAtFootX);
+						//		System.out.println("rightwardMovement bounding point: (x,y) = "+creaturesIntervalX2+", "+creaturesIntervalY2);
+					//			System.out.println("intersectionPoint: (x,y) = "+terrainTerrainIntersectionResult[0]+", "+terrainTerrainIntersectionResult[1]);
 								if ((leftwardMovement && isWithinBoundsExclusive(terrainTerrainIntersectionResult[0],terrainTerrainIntersectionResult[1], creaturesIntervalX1, creaturesIntervalY1, footX, landingPositionAtFootX))
 									||
 									(rightwardMovement && isWithinBoundsExclusive(terrainTerrainIntersectionResult[0],terrainTerrainIntersectionResult[1], footX, landingPositionAtFootX, creaturesIntervalX2, creaturesIntervalY2))
@@ -821,6 +780,7 @@ public class WorldUpdater {
 
 				landingPosition = creaturesInterval.getLandingPosition(entity, intervalMode);
 				startingPosition = creaturesInterval.getY1(entity, intervalMode);
+				endingPosition = creaturesInterval.getY2(entity, intervalMode);
 
 				if (Math.abs((footY - landingPosition)) <= landingPrecision && !entity.getJumping()) {
 						onPlatform = true;
@@ -865,7 +825,7 @@ public class WorldUpdater {
 			 * FINALLY, UPDATE LEFT OR RIGHT ENDPOINT IF A TERRAIN INTERSECTS BEFORE ENDPOINT  *
 			 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 			if (closestIntersectionDistance <= 10.0) {
-				System.out.println("closestIntersectionDistance <= 10.0");
+		//		System.out.println("closestIntersectionDistance <= 10.0");
 		//		System.exit(0);
 			}
 			if (creaturesInterval != null) {
@@ -873,6 +833,7 @@ public class WorldUpdater {
 				if (leftwardMovement) {
 					double distanceToLeftEndpoint = Math.sqrt( (x1Value - footX)*(x1Value - footX) + (startingPosition - landingPositionAtFootX)*(startingPosition - landingPositionAtFootX) );
 					if (closestIntersectionDistance < distanceToLeftEndpoint) {
+						System.out.println("navigate(): overwriting x1");
 						x1Value = closestIntersectionX;
 						startingPosition = closestIntersectionY;
 					}
@@ -880,22 +841,26 @@ public class WorldUpdater {
 				else if (rightwardMovement) {
 					double distanceToRightEndpoint = Math.sqrt( (x2Value - footX)*(x2Value - footX) + (endingPosition - landingPositionAtFootX)*(endingPosition - landingPositionAtFootX) );
 					if (closestIntersectionDistance < distanceToRightEndpoint) {
+						System.out.println("navigate(): overwriting x2");
 						x2Value = closestIntersectionX;
 						endingPosition = closestIntersectionY;
 					}
 				}
 			}
 			
-			System.out.println("NAVIGATE: onPlatform is "+onPlatform);
-			System.out.println("NAVIGATE: x1Value, x2Value: "+x1Value+", "+x2Value);
+		//	System.out.println("NAVIGATE: onPlatform is "+onPlatform);
+		//	System.out.println("NAVIGATE: x1Value, x2Value: "+x1Value+", "+x2Value);
 
 			
 			double intervalEndpointX = 0.0;
+			double intervalEndpointY = 0.0;
 			
 			if (rightwardMovement) {
 				intervalEndpointX = x2Value;
+				intervalEndpointY = endingPosition;
 			} else if (leftwardMovement) {
 				intervalEndpointX = x1Value;
+				intervalEndpointY = startingPosition;
 			}
 	
 			if (hasLandingPosition && !onPlatform) {
@@ -939,9 +904,15 @@ public class WorldUpdater {
 			}
 			
 			System.out.println("NAVIGATE: NOT L CASE 1 OR 2");
-			double platformDistanceToEndOfInterval = Math.sqrt( (intervalEndpointX - footX)*(intervalEndpointX - footX) + 
-																(intervalEndpointX - footX)*(intervalEndpointX - footX) * Math.tan(angle)*Math.tan(angle)
-															  );
+			double platformDistanceToEndOfInterval = 0.0;
+			if (creaturesInterval != null) {
+				platformDistanceToEndOfInterval = Math.sqrt( (intervalEndpointX - footX)*(intervalEndpointX - footX) + 
+															(intervalEndpointY - landingPosition)*(intervalEndpointY - landingPosition)
+															);
+			}
+			else {
+				platformDistanceToEndOfInterval = Math.abs(intervalEndpointX - footX);
+			}
 			/*
 			 * * * * * * * * * * * * * * * * * * * *
 			 * Movement on platform, or in air but * 
@@ -980,9 +951,9 @@ public class WorldUpdater {
 		double endEntXPos = entity.getX();
 		if (Math.abs(endEntXPos - startEntXPos) > 0.0401) {
 			System.out.println("Abnormally large dx: "+(endEntXPos - startEntXPos));
-			System.exit(0);
+		//	System.exit(0);
 		}
-		//System.out.println("-----------------------navigate END-------------------------------");
+		System.out.println("-----------------------navigate END-------------------------------");
 
 		
 	}
@@ -1037,8 +1008,7 @@ public class WorldUpdater {
 		
 		
 		while (amountToMoveCeiling > 0.0) {
-			System.out.println("CEILING: entitiesIntervalMode == "+entitiesIntervalMode);
-			System.out.println("CEILING: WHILE LOOP BEGIN, amountToMoveCeiling = "+amountToMoveCeiling);
+
 			double footX = entity.getX() + dxToMove;
 			double footY = entity.getY() - 0.5*entity.getHeight() + dyToMove;
 			double headY = entity.getY() + 0.5*entity.getHeight() + dyToMove;
@@ -1262,18 +1232,17 @@ public class WorldUpdater {
 			}
 			
 	
-			System.out.println("CEILING: footX = "+footX);
-			System.out.println("CEILING: x1 = "+x1Value+", x2Value = "+x2Value);
 			double ceilingIntervalEndpointX = 0.0;
+			double ceilingIntervalEndpointY = 0.0;
 			
 			if (rightwardMovement) {
 				ceilingIntervalEndpointX = x2Value;
+				ceilingIntervalEndpointY = endingCeilingPosition;
 			} else if (leftwardMovement) {
 				ceilingIntervalEndpointX = x1Value;
+				ceilingIntervalEndpointY = startingCeilingPosition;
 			}
 	
-			
-//			System.out.println("CEILING: onPlatform = "+onPlatform);
 			
 			if (onPlatform) {
 				//System.out.println("^ ^ ^ CEILING: onPlatform");
@@ -1331,8 +1300,6 @@ public class WorldUpdater {
 					 */
 					// 	onPlatform == false and onCeiling == false
 						double newDXToMove = motionVectorX*Math.min(amountToMoveCeiling, Math.abs(ceilingIntervalEndpointX - footX));
-						//double modifiedAirDY = Math.tan(entitiesInterval.getPlatformAngle())*modifiedAirDX;
-						//System.out.println("CEILING SECTION: newDXToMove = "+newDXToMove);
 						/*
 						 * * * * * * * * * * * * * * * * * * * *
 						 * Check if horizontal movement in air * 
@@ -1373,7 +1340,7 @@ public class WorldUpdater {
 						// onPlatform == false, onCeiling == true OR false 
 						// 						(could have hasCeilingPosition == false or (hasCeilingPosition == true && onCeiling == true))
 						double ceilingDistanceToEndOfCeiling = Math.sqrt( (ceilingIntervalEndpointX - footX)*(ceilingIntervalEndpointX - footX) + 
-																			(ceilingIntervalEndpointX - footX)*(ceilingIntervalEndpointX - footX) * Math.tan(angle)*Math.tan(angle)
+																			(ceilingIntervalEndpointY - ceilingPosition)*(ceilingIntervalEndpointY - ceilingPosition)
 																		  );
 						/*
 						 * * * * * * * * * * * * * * * * * * * *
@@ -1607,7 +1574,7 @@ public class WorldUpdater {
 			// USING DONEFALLING INSTEAD OF AMOUNTTOFALL AS CONDITIONAL BECAUSE IF ENTITY IS NOT ON PLATFORM, MOVES THE EXACT FALL AMOUNT REQUESTED 
 			// AND ENDS UP ON PLATFORM, NEED TO LOOP BACK TO SET FALLING TO FALSE AND CRUCIALLY, RESET FALL VELOCITY 
 			while (!doneFalling) {
-			//	System.out.println("   !!!JumpOrFall: While Loop BEGIN");
+				System.out.println("   !!!JumpOrFall: While Loop BEGIN");
 				
 				double footX = entity.getX() + dxToMove;
 				double footY = entity.getY() - 0.5*entity.getHeight() + dyToMove;
@@ -1806,8 +1773,12 @@ public class WorldUpdater {
 						}						
 				}
 				
-		//		System.out.println("JumpOrFall: After analysis, onPlatform = "+onPlatform+" and onWall = "+onWall);
- 			//	System.out.println("JumpOrFall: Before any motion, footY = "+ footY+" and lP = "+creaturesInterval.getLandingPositionFromSpecificPosition(footX));
+		System.out.println("JumpOrFall: After analysis, onPlatform = "+onPlatform+" and onWall = "+onWall);
+		if (creaturesInterval != null) {
+			System.out.println("JumpOrFall: Before any motion, footX = "+footX);
+			System.out.println("JumpOrFall: Before any motion, x1 = "+creaturesInterval.getX1(entity, intervalMode)+", x2 ="+creaturesInterval.getX2(entity, intervalMode));
+			System.out.println("JumpOrFall: Before any motion, footY = "+ footY+" and lP = "+(creaturesInterval.getLandingPositionFromSpecificPosition(entity, footX, intervalMode)));
+		}
 				
 				//System.out.println("JUMPORFALL: FALLING: ONWALL = "+onWall);
 				//System.out.println("JUMPORFALL: FALLING: ONPLATFORM = "+onPlatform);
@@ -1849,6 +1820,7 @@ public class WorldUpdater {
 						continue;
 				}
 				else if (!onWall) {
+					System.out.println("!ONWALL SECTION");
 						if (creaturesInterval == null) {
 							dxToMove = dxToMove;
 							dyToMove = dyToMove - amountToFall;
@@ -1871,16 +1843,23 @@ public class WorldUpdater {
 						/****************************
 						    SLOPED WALL NAVIGATION
 						 ****************************/
-			//		System.out.println("SLOPED WALL SECTION");
-			//		System.out.println("x1Value = "+x1Value+ " and x2Value = "+x2Value);
+					System.out.println("_______ SLOPED WALL SECTION BEGIN ________");
+					System.out.println(" x1Value = "+x1Value+ " and x2Value = "+x2Value);
+					System.out.println(" y1Value = "+startingPositionValue+ " and y2Value = "+endingPositionValue);
 						double wallAngle = creaturesInterval.getPlatformAngle(intervalMode);
 						double wallMotionVector = wallAngle >= 0.0 ? -1.0 : 1.0;
 						double relevantEndpointX = wallAngle > 0.0 ? x1Value : x2Value;
 						double relevantEndpointY = wallAngle > 0.0 ? startingPositionValue : endingPositionValue;
 						double wallDistanceToEndOfWallInterval = Math.sqrt( (footX - relevantEndpointX)*(footX - relevantEndpointX) + (footY - relevantEndpointY)*(footY - relevantEndpointY) );
+						System.out.println(" wallAngle = "+wallAngle);
+						System.out.println(" wallDTE = "+wallDistanceToEndOfWallInterval);
+						
 						dxToMove = dxToMove + wallMotionVector*Math.cos(wallAngle)*Math.min(amountToFall, wallDistanceToEndOfWallInterval);
 						dyToMove = dyToMove - Math.abs(Math.sin(wallAngle))*Math.min(amountToFall, wallDistanceToEndOfWallInterval);
+						System.out.println(" computed distanced moved = "+(Math.sqrt(dxToMove*dxToMove + dyToMove*dyToMove)));
+						System.out.println(" new footY would be " + (entity.getY() - 0.5*entity.getHeight() + dyToMove));
 						amountToFall = setZeroIfThreshold(amountToFall - Math.min(amountToFall, wallDistanceToEndOfWallInterval),landingPrecision);
+						System.out.println("_______ SLOPED WALL SECTION END ________");
 						continue;
 				}
 
@@ -1893,118 +1872,7 @@ public class WorldUpdater {
 	}
 	
 	
-	public void panCameraHorizontally(Camera camera, Entity entity) {	
 
-		if (camera.getEyeX() < entity.getX() + entity.getTargetHorizontalThresholdRight() && entity.getMotionVector().x > 0.0
-			&& entity.getFacingDirection().compareTo("right") == 0) {
-				adjustCameraRightMovement = true;
-				adjustCameraLeft = false;
-		}
-
-		if (camera.getEyeX() > entity.getX() - entity.getTargetHorizontalThresholdLeft() && entity.getMotionVector().x < 0.0
-			&& entity.getFacingDirection().compareTo("left") == 0) {
-				adjustCameraLeft = true;
-				adjustCameraRightMovement = false;
-		}
-
-		
-		double pBeforeCameraPan = entity.getX();
-
-		if (adjustCameraRightMovement) {
-
-			double cameraRightDX = cameraSpeedScale * (entity.getX() + entity.getTargetHorizontalThresholdRight() - camera.getEyeX())
-					+ 0.0032;
-			if (camera.getEyeX() + cameraRightDX > entity.getX() + entity.getTargetHorizontalThresholdRight() || Math.abs(
-					camera.getEyeX() + cameraRightDX - entity.getX() - entity.getTargetHorizontalThresholdRight()) <= landingPrecision) {
-
-				double plB4 = entity.getX();
-
-				double closingDistance = Math.abs(entity.getX() + entity.getTargetHorizontalThresholdRight()  -  camera.getEyeX());
-
-				camera.setEyeDX(1.0*closingDistance);
-				camera.setEyeDY(0.0);
-				camera.setEyeDZ(0.0);
-				camera.setVPointDX(1.0*closingDistance);
-				camera.setVPointDY(0.0);
-				camera.setVPointDZ(0.0);
-				
-				camera.moveEye();
-				camera.moveVPoint();
-				
-				double plAfter = player.getX();
-
-				//System.out.println("Actual player delta was " + (plAfter - plB4));
-
-				if (Math.abs(entity.getX() + entity.getTargetHorizontalThresholdRight()  -  camera.getEyeX()) <= landingPrecision) {
-
-					adjustCameraRightMovement = false;
-
-				}
-				
-			} else {
-
-				camera.setEyeDX(1.0*cameraRightDX);
-				camera.setEyeDY(0.0);
-				camera.setEyeDZ(0.0);
-				camera.setVPointDX(1.0*cameraRightDX);
-				camera.setVPointDY(0.0);
-				camera.setVPointDZ(0.0);
-				
-				camera.moveEye();
-				camera.moveVPoint();
-			}
-		}
-
-		if (adjustCameraLeft) {
-			
-
-
-			double cameraLeftDX = cameraSpeedScale * (camera.getEyeX() - entity.getX() + entity.getTargetHorizontalThresholdLeft() )
-					+ 0.0032;
-
-
-			if (camera.getEyeX() - cameraLeftDX < entity.getX() - entity.getTargetHorizontalThresholdLeft() || Math.abs(
-					camera.getEyeX() - cameraLeftDX - entity.getX() + entity.getTargetHorizontalThresholdLeft()) <= landingPrecision) {
-
-
-				double closingDistance = Math.abs(camera.getEyeX() - entity.getX() + entity.getTargetHorizontalThresholdLeft()  );
-
-
-				camera.setEyeDX(-1.0*closingDistance);
-				camera.setEyeDY(0.0);
-				camera.setEyeDZ(0.0);
-				camera.setVPointDX(-1.0*closingDistance);
-				camera.setVPointDY(0.0);
-				camera.setVPointDZ(0.0);
-				
-				camera.moveEye();
-				camera.moveVPoint();
-				
-				if (Math.abs(camera.getEyeX() - entity.getX() + entity.getTargetHorizontalThresholdLeft()) <= landingPrecision) {
-
-						adjustCameraLeft = false;
-
-				}
-					
-			}else {
-
-				camera.setEyeDX(-1.0*cameraLeftDX);
-				camera.setEyeDY(0.0);
-				camera.setEyeDZ(0.0);
-				camera.setVPointDX(-1.0*cameraLeftDX);
-				camera.setVPointDY(0.0);
-				camera.setVPointDZ(0.0);
-				
-				camera.moveEye();
-				camera.moveVPoint();
-
-				
-			}
-			
-
-
-		}
-	}
 	
 	public void panCameraVertically(Camera camera, Entity entity) {
 		
@@ -2129,51 +1997,98 @@ public class WorldUpdater {
 		// TERRAIN CHECK
 		for (int j = 0; j < activeBackgrounds.size(); j++) {
 			for (int p = 0; p < activeBackgrounds.get(j).getIntervals().size(); p++) {
-				Interval aTerrain = activeBackgrounds.get(j).getIntervals().get(p);
-				double x1 = aTerrain.getX1(entity, 1);
-				double x2 = aTerrain.getX2(entity, 1);
-				double sP = aTerrain.getY1(entity, 1);
-				double eP = aTerrain.getY2(entity, 1);
-				double lP = aTerrain.getLandingPositionFromSpecificPosition(entity, footX, 1);
-				double footYToLPDistance = Math.abs(lP-footY);
 				
-				if ( ( (aTerrain.isPositionAtX1(footX,entity, 1) || footX > x1)   &&   (aTerrain.isPositionAtX2(footX,entity, 1) || footX < x2) ) 
-					&& (!(Math.abs(footY-lP)<=landingPrecision) && footY < lP) 
-					&& footYToLPDistance <= belowPlatformDistanceThreshold) {
-					System.out.println("isBelowPlatform: TERRAIN, footX = "+footX+", footY = "+footY+", lP = "+lP);
-					return true;
+				// Check if this interval is a left and/or right cliff
+				ArrayList<Integer> intervalModes = new ArrayList<Integer>(); // mode == 1: standard, mode == 2: leftCliff, mode == 3: rightCliff
+				intervalModes.add(1);
+				if (activeBackgrounds.get(j).getIntervals().get(p).isLeftCliff()) {
+					intervalModes.add(2);
 				}
-				else if ( ( (aTerrain.isPositionAtX1(footX,entity, 1) || footX > x1)   &&   (aTerrain.isPositionAtX2(footX,entity, 1) || footX < x2) ) 
-						&& ((Math.abs(footY-lP)<=landingPrecision)) ) {
-						landedTERRAIN = true;
-						entityLP = lP;
-
+				if (activeBackgrounds.get(j).getIntervals().get(p).isRightCliff()) {
+					intervalModes.add(3);
+				}
+			
+				for (int m = 0; m < intervalModes.size(); m++) {
+					int anIntervalMode = intervalModes.get(m);
+					Interval aTerrain = activeBackgrounds.get(j).getIntervals().get(p);
+					double x1 = aTerrain.getX1(entity, anIntervalMode );
+					double x2 = aTerrain.getX2(entity, anIntervalMode );
+					double sP = aTerrain.getY1(entity, anIntervalMode );
+					double eP = aTerrain.getY2(entity, anIntervalMode );
+					double lP = aTerrain.getLandingPositionFromSpecificPosition(entity, footX, anIntervalMode);
+					double angle = aTerrain.getPlatformAngle(anIntervalMode);
+					double footYToLPDistance = Math.abs(lP-footY);
+					
+					if ( ( (aTerrain.isPositionAtX1(footX,entity, anIntervalMode ) || footX > x1)   &&   (aTerrain.isPositionAtX2(footX,entity, anIntervalMode ) || footX < x2) ) 
+						&& (!(Math.abs(footY-lP)<=landingPrecision) && footY < lP) 
+						&& footYToLPDistance <= belowPlatformDistanceThreshold) {
+						System.out.println("xx xx xx xx xx xx xx xx xx xx");
+						System.out.println("isBelowPlatform: TERRAIN, footX = "+footX+", footY = "+footY+", lP = "+lP);
+						System.out.println("isBelowPlatform: TERRAIN, x1 = "+x1+", x2 ="+x2);
+						System.out.println("isBelowPlatform: TERRAIN, y1 = "+sP+", y2 ="+eP);
+						System.out.println("isBelowPlatform: TERRAIN, angle = "+angle);
+						System.out.println("isBelowPlatform: TERRAIN, intervalMode = "+ anIntervalMode);
+						return true;
+					}
+					else if ( ( (aTerrain.isPositionAtX1(footX,entity, anIntervalMode) || footX > x1)   &&   (aTerrain.isPositionAtX2(footX,entity, anIntervalMode ) || footX < x2) ) 
+							&& ((Math.abs(footY-lP)<=landingPrecision)) ) {
+							landedTERRAIN = true;
+							entityLP = lP;
+	
+					}
 				}
 			}
 		}
 		// SLOPED WALL CHECK
 		for (int j = 0; j < activeBackgrounds.size(); j++) {
 			for (int p = 0; p < activeBackgrounds.get(j).getSlopedWalls().size(); p++) {
-				Interval aWall= activeBackgrounds.get(j).getIntervals().get(p);
-				double x1 = aWall.getX1(entity, 1);
-				double x2 = aWall.getX2(entity, 1);
-				double sP = aWall.getY1(entity,1);
-				double eP = aWall.getY2(entity,1);
-				double lP = aWall.getLandingPositionFromSpecificPosition(entity, footX, 1);
-				double footYToLPDistance = Math.abs(lP-footY);
 				
-				if ( ( (aWall.isPositionAtX1(footX,entity, 1) || footX > x1)   &&   (aWall.isPositionAtX2(footX,entity, 1) || footX < x2) ) 
-					&& (!(Math.abs(footY-lP)<=landingPrecision) && footY < lP) 
-					&& footYToLPDistance <= belowPlatformDistanceThreshold) {
-					System.out.println("isBelowPlatform: TERRAIN, footX = "+footX+", footY = "+footY+", lP = "+lP);
-					return true;
-				}
-				else if ( ( (aWall.isPositionAtX1(footX,entity, 1) || footX > x1)   &&   (aWall.isPositionAtX2(footX,entity, 1) || footX < x2) ) 
-						&& ((Math.abs(footY-lP)<=landingPrecision)) ) {
-						landedWALL = true;
-						entityLP = lP;
-
-				}
+					Interval aWall= activeBackgrounds.get(j).getSlopedWalls().get(p);
+					double x1 = aWall.getX1(entity, 1);
+					double x2 = aWall.getX2(entity, 1);
+					double sP = aWall.getY1(entity,1);
+					double eP = aWall.getY2(entity,1);
+					double lP = aWall.getLandingPositionFromSpecificPosition(entity, footX, 1);
+					double angle = aWall.getPlatformAngle(1);
+					double footYToLPDistance = Math.abs(lP-footY);
+					
+					if ( (    ( ( aWall.isPositionAtX1(footX,entity, 1) || footX > x1) ) &&
+							
+							( ( (aWall.isPositionAtX2(footX,entity, 1)   || footX < x2) ) 
+							) 
+						&& (!(Math.abs(footY-lP)<=landingPrecision) && footY < lP) 
+						&& footYToLPDistance <= belowPlatformDistanceThreshold) ) {
+						
+						if ((aWall.isPositionAtX1(footX,entity, 1) && aWall.getLeftInterval().getType() != 2)
+								||
+								(aWall.isPositionAtX2(footX,entity, 1) && aWall.getRightInterval().getType() != 2)
+								) {
+							return false;
+						}
+						System.out.println("xx xx xx xx xx xx xx xx xx xx");
+						System.out.println("isBelowPlatform: WALL, footX = "+footX+", footY = "+footY+", lP = "+lP);
+						System.out.println("isBelowPlatform: WALL, x1 = "+x1+", x2 ="+x2);
+						System.out.println("isBelowPlatform: WALL, y1 = "+sP+", y2 ="+eP);
+						System.out.println("isBelowPlatform: WALL, angle = "+ angle);
+						System.out.println("  isBelowPlatform: WALL LEFT NEIGHBOR, type = "+aWall.getLeftInterval().getType() +", angle = "+ aWall.getLeftInterval().getPlatformAngle(1));
+						System.out.println("  isBelowPlatform: WALL LEFT NEIGHBOR, x1 = "+aWall.getLeftInterval().getX1(entity, 1)+", x2 = "+aWall.getLeftInterval().getX2(entity, 1));
+						System.out.println("  isBelowPlatform: WALL LEFT NEIGHBOR, y1 = "+aWall.getLeftInterval().getY1(entity, 1)+", y2 = "+aWall.getLeftInterval().getY2(entity, 1));
+						System.out.println("	isBelowPlatform: WALL RIGHT NEIGHBOR, type = "+aWall.getRightInterval().getType() +", angle = "+ aWall.getRightInterval().getPlatformAngle(1));
+						System.out.println("	isBelowPlatform: WALL RIGHT NEIGHBOR, x1 = "+aWall.getRightInterval().getX1(entity, 1)+", x2 = "+aWall.getRightInterval().getX2(entity, 1));
+						System.out.println("	isBelowPlatform: WALL RIGHT NEIGHBOR, y1 = "+aWall.getRightInterval().getY1(entity, 1)+", y2 = "+aWall.getRightInterval().getY2(entity, 1));
+						System.out.println("isBelowPlatform: WALL, intervalMode = "+ 1);
+						
+						
+						
+						return true;
+					}
+					else if ( ( (aWall.isPositionAtX1(footX,entity, 1) || footX > x1)   &&   (aWall.isPositionAtX2(footX,entity, 1) || footX < x2) ) 
+							&& ((Math.abs(footY-lP)<=landingPrecision)) ) {
+							landedWALL = true;
+							entityLP = lP;
+	
+					}
+				
 			}
 		}
 		

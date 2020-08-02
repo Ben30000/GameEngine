@@ -104,15 +104,18 @@ public class Interval {
 		
 
 		if (intervalMode == NONCLIFF) {
+			
 			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
 		}
 		else if (intervalMode == LEFTCLIFF) {
 			if (isLeftCliff()) {
+				
 				return this.y1;
 			}
 		}
 		else if (intervalMode == RIGHTCLIFF) {
 			if (isRightCliff()) {
+				
 				return this.y2;
 			}
 		}
@@ -125,15 +128,18 @@ public class Interval {
 		double footX = x;
 
 		if (intervalMode == NONCLIFF) {
+			
 			return getY1(entity,intervalMode) + (footX - getX1(entity,intervalMode))*(getY2(entity,intervalMode) - getY1(entity,intervalMode))/(getX2(entity,intervalMode) - getX1(entity,intervalMode));
 		}
 		else if (intervalMode == LEFTCLIFF) {
 			if (isLeftCliff()) {
+				
 				return this.y1;
 			}
 		}
 		else if (intervalMode == RIGHTCLIFF) {
 			if (isRightCliff()) {
+				
 				return this.y2;
 			}
 		}
