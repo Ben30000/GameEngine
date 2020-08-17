@@ -10,7 +10,7 @@ public class Camera {
 	private boolean panningUp, panningDown;
 	private double targetVerticalPosition;
 	
-	private double targetHorizontalDistanceRightOfEntity = 0.45, targetHorizontalDistanceLeftOfEntity = 0.45;
+	private double targetHorizontalDistanceRightOfEntity = 0.5, targetHorizontalDistanceLeftOfEntity = 0.5;
 	private double minHorizontalPanSpeed = 0.0032;
 	private boolean panningHorizontally;
 	private double currentTargetEyeX;

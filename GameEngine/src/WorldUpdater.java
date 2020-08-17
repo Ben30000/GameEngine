@@ -342,7 +342,7 @@ public class WorldUpdater {
 								double someDY = wallIntersectionResult[1] - footY;
 								double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
 
-								if (intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
+								if (intersectionDistance < closestIntersectionDistance) {
 									System.out.println("/////// WALLED");
 									System.out.println("wallAngle = "+wallAngle);
 									System.out.println("aWall.isPositionAtX1(wallIntersectionResult[0],entity,1) = "+aWall.isPositionAtX1(wallIntersectionResult[0],entity,1));
@@ -376,7 +376,7 @@ public class WorldUpdater {
 						    		double someDX = perpendicularPartOfWallIntersectionResult[0] - footX;
 									double someDY = perpendicularPartOfWallIntersectionResult[1] - footY;
 									double intersectionDistance = Math.sqrt(someDX*someDX + someDY*someDY);
-									if (intersectionDistance < closestIntersectionDistance || Math.abs(intersectionDistance - closestIntersectionDistance) <= landingPrecision) {
+									if (intersectionDistance < closestIntersectionDistance) {
 										System.out.println("|||||| WALLED: PERPENDICULAR");
 										closestIntersectionDistance = intersectionDistance;
 										finalDX = someDX;
@@ -469,8 +469,8 @@ public class WorldUpdater {
 		// returns {intersectionPointX, intersectionPointY} or null if lines do not intersect
 
 		double sTime = System.nanoTime();
-		double boundsP = 0.0000000000001;
-
+		
+		double boundsP = landingPrecision;
 		double A1 = y2 - y1;
 		double B1 = x1 - x2;
 		double C1 = A1 * x1 + B1 * y1;
@@ -1793,7 +1793,7 @@ public class WorldUpdater {
 						if (onWall) {
 							// WARNING: friction can create a negative ammountToFall, which can cause falling through the world
 								double minWallAcceleration = 2.0;
-								double minWallVelocity = 3.0;
+								double minWallVelocity = 2.0;
 								double maxWallVelocity = 20.0;
 								slopeScalar = Math.abs(Math.sin(creaturesInterval.getPlatformAngle(intervalMode)));
 								friction = 0.40*gravityAcceleration;
@@ -1994,6 +1994,10 @@ public class WorldUpdater {
 		double entityLP = 0.0;
 		boolean landedWALL = false;
 		boolean landedTERRAIN = false;
+	
+		double fellThruIntervalX1, fellThruIntervalX2, fellThruIntervalY1, fellThruIntervalY2, fellThruLP, fellThruAngle;
+		Interval fellThruIntervalLeftNeighbor, fellThruIntervalRightNeighbor;
+				
 		// TERRAIN CHECK
 		for (int j = 0; j < activeBackgrounds.size(); j++) {
 			for (int p = 0; p < activeBackgrounds.get(j).getIntervals().size(); p++) {
@@ -2052,18 +2056,17 @@ public class WorldUpdater {
 					double angle = aWall.getPlatformAngle(1);
 					double footYToLPDistance = Math.abs(lP-footY);
 					
-					if ( (    ( ( aWall.isPositionAtX1(footX,entity, 1) || footX > x1) ) &&
-							
-							( ( (aWall.isPositionAtX2(footX,entity, 1)   || footX < x2) ) 
-							) 
+					if ( (    ( ( aWall.isPositionAtX1(footX,entity, 1) || footX > x1) ) &&							
+							 ( (aWall.isPositionAtX2(footX,entity, 1)   || footX < x2) ) 
 						&& (!(Math.abs(footY-lP)<=landingPrecision) && footY < lP) 
 						&& footYToLPDistance <= belowPlatformDistanceThreshold) ) {
 						
-						if ((aWall.isPositionAtX1(footX,entity, 1) && aWall.getLeftInterval().getType() != 2)
+						if ( ( (aWall.isPositionAtX1(footX,entity, 1) && aWall.getLeftInterval().getType() != 2)
 								||
-								(aWall.isPositionAtX2(footX,entity, 1) && aWall.getRightInterval().getType() != 2)
+								(aWall.isPositionAtX2(footX,entity, 1) && aWall.getRightInterval().getType() != 2) )
+								&& !landedWALL
 								) {
-							return false;
+							continue;
 						}
 						System.out.println("xx xx xx xx xx xx xx xx xx xx");
 						System.out.println("isBelowPlatform: WALL, footX = "+footX+", footY = "+footY+", lP = "+lP);

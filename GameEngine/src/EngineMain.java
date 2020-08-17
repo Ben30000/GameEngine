@@ -54,6 +54,10 @@ public class EngineMain {
 		private int shadowMap1, shadowMap2, shadowMap3, shadowMap4, shadowMap1FBO, shadowMap2FBO, shadowMap3FBO, shadowMap4FBO;
 		
 		private double landingPrecision = 0.00001;
+		/*
+		 entityAlignmentMode: 1 for center, 2 for heel/toe 
+		 */
+		private double entityAlignmentMode = 2; 
 		
 		private int sceneDepthFBO;
 		private int sceneDepthRBO;
@@ -4330,7 +4334,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	           
 	           
 	           
-	           
+	            
 	           
 	           
 	           
@@ -6793,6 +6797,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 */
 					 
 						Interval.landingPrecision = this.landingPrecision;
+						Interval.entityAlignmentMode = this.entityAlignmentMode;
 						Camera.landingPrecision = this.landingPrecision;
 						
 				        String worldOneTerrain = "C:/StageItems/WORLD_INTERVAL_DATA_1.txt";

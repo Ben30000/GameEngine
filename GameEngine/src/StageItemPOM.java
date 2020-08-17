@@ -803,7 +803,7 @@ public class StageItemPOM {
 				" if (hasDisplacementMap == 1 && materialMode == 1) {"+
 				//////////////////////////////////////////
 				"	 displacementScale = 0.19;"+
-				"	 displacementOffset = -0.1;"+
+				"	 displacementOffset = -0.12991;"+
 				///////////////////////////////////////////
 				"     float displacementValue1 = 0.0;"+	
 				
@@ -1270,6 +1270,9 @@ public class StageItemPOM {
 " int closestObjectSearchSize = 8;"+
 
 
+
+
+
      
 
 " int outsideShadow = 0;"+
@@ -1286,7 +1289,7 @@ public class StageItemPOM {
 " float k = 1.0;"+
 
 " a = 0.024f;"+
-" c = 0.0008f;"+ // USE 0.001
+" c = 0.001f;"+ // USE 0.001
 
  "searchRadius = 0.02;"+
 " blurriestRadius = 0.02;"+

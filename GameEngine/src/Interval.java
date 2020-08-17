@@ -3,6 +3,7 @@ import org.joml.Vector2d;
 public class Interval {
 
 	static public double landingPrecision;    // static variables and methods are defined before the creation of an instances of an object and can be referenced as Class.variable/method
+	static public double entityAlignmentMode;
 	
 	static final public int NONCLIFF = 1;
 	static final public int LEFTCLIFF = 2;
@@ -34,59 +35,112 @@ public class Interval {
 	
 	public double getX1(Entity entity, int intervalMode) {
 
-		if (intervalMode == NONCLIFF) {
-			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
-			|| (getType() == 3 && getPlatformAngle(intervalMode) <= 0.0) ) {                        // width extend walls/ceilings
-				return this.x1 - 0.5*entity.getFeetWidth();
+		if (entityAlignmentMode == 1) {
+			if (intervalMode == NONCLIFF) {
+				if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
+				|| (getType() == 3 && getPlatformAngle(intervalMode) <= 0.0) ) {                        // width extend walls/ceilings
+					return this.x1 - 0.5*entity.getFeetWidth();
+				}
+				else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
+				|| (getType() == 3 && getPlatformAngle(intervalMode) > 0.0) ) {						// width extend walls/ceilings
+					return this.x1 + 0.5*entity.getFeetWidth();
+				}
+				return this.x1;																			// standard terrain
 			}
-			else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
-			|| (getType() == 3 && getPlatformAngle(intervalMode) > 0.0) ) {						// width extend walls/ceilings
-				return this.x1 + 0.5*entity.getFeetWidth();
+			else if (intervalMode == LEFTCLIFF) {			
+				return this.x1 - 0.5*entity.getFeetWidth();												// left cliff terrain, left cliff ceiling
 			}
-			return this.x1;																			// standard terrain
-		}
-		else if (intervalMode == LEFTCLIFF) {			
-			return this.x1 - 0.5*entity.getFeetWidth();												// left cliff terrain, left cliff ceiling
-		}
-		else if (intervalMode == RIGHTCLIFF) {
-			if (getType() == 1) {
-				return this.x2;																			// right cliff terrain
+			else if (intervalMode == RIGHTCLIFF) {
+				if (getType() == 1) {
+					return this.x2;																			// right cliff terrain
+				}
+				else if (getType() == 3) {
+					return this.x2 - 0.5*entity.getFeetWidth();
+				}
 			}
-			else if (getType() == 3) {
-				return this.x2 - 0.5*entity.getFeetWidth();
-			}
+			
+			return this.x1;																				// default non-cliff
 		}
 		
-		return this.x1;																				// default non-cliff
+		
+		else if (entityAlignmentMode == 2) {
+			if (intervalMode == NONCLIFF) {
+				if (  ( (getType() == 1 || getType() == 2) && getPlatformAngle(intervalMode) >= 0.0)
+					|| ( getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {
+					return this.x1 - 0.5*entity.getFeetWidth();
+				}
+				else if (  ( (getType() == 1 || getType() == 2) && getPlatformAngle(intervalMode) < 0.0)
+						|| ( getType() == 3 && getPlatformAngle(intervalMode) >= 0.0) ) {
+						return this.x1 + 0.5*entity.getFeetWidth();
+				}
+				return this.x1;
+			}
+			else if (intervalMode == LEFTCLIFF) {
+				return this.x1 - 0.5*entity.getFeetWidth();
+			}
+			else if (intervalMode == RIGHTCLIFF) {
+				return this.x2 - 0.5*entity.getFeetWidth();
+			}
+			
+			return this.x1;
+		}
+		
+		return this.x1;
 	}
 	
 	
 	public double getX2(Entity entity, int intervalMode) {
 
-		if (intervalMode == NONCLIFF) {
-			if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
-			|| (getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {							// width extend walls/ceilings
-				return this.x2 - 0.5*entity.getFeetWidth();
+		if (entityAlignmentMode == 1) {
+			if (intervalMode == NONCLIFF) {
+				if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
+				|| (getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {							// width extend walls/ceilings
+					return this.x2 - 0.5*entity.getFeetWidth();
+				}
+				else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
+				|| (getType() == 3 && getPlatformAngle(intervalMode) >= 0.0) ) {						// width extend walls/ceilings
+					return this.x2 + 0.5*entity.getFeetWidth();
+				}
+				return this.x2;																			// standard terrain
 			}
-			else if ( (getType() == 2 && getPlatformAngle(intervalMode) < 0.0)
-			|| (getType() == 3 && getPlatformAngle(intervalMode) >= 0.0) ) {						// width extend walls/ceilings
-				return this.x2 + 0.5*entity.getFeetWidth();
+			else if (intervalMode == LEFTCLIFF) {
+				if (getType() == 1) {
+					return this.x1;																			// left cliff terrain
+				}
+				else if (getType() == 3) {		
+					return this.x1 + 0.5*entity.getFeetWidth();												// left cliff ceiling
+				}
 			}
-			return this.x2;																			// standard terrain
-		}
-		else if (intervalMode == LEFTCLIFF) {
-			if (getType() == 1) {
-				return this.x1;																			// left cliff terrain
+			else if (intervalMode == RIGHTCLIFF) {
+				return this.x2 + 0.5*entity.getFeetWidth();												// right cliff terrain, right cliff ceiling
 			}
-			else if (getType() == 3) {		
-				return this.x1 + 0.5*entity.getFeetWidth();												// left cliff ceiling
-			}
-		}
-		else if (intervalMode == RIGHTCLIFF) {
-			return this.x2 + 0.5*entity.getFeetWidth();												// right cliff terrain, right cliff ceiling
+			
+			return this.x2;																				// default non-cliff
 		}
 		
-		return this.x2;																				// default non-cliff
+		else if (entityAlignmentMode == 2) {
+			if (intervalMode == NONCLIFF) {
+				if (  ( (getType() == 1 || getType() == 2) && getPlatformAngle(intervalMode) >= 0.0)
+					|| ( getType() == 3 && getPlatformAngle(intervalMode) < 0.0) ) {
+					return this.x2 - 0.5*entity.getFeetWidth();
+				}
+				else if (  ( (getType() == 1 || getType() == 2) && getPlatformAngle(intervalMode) < 0.0)
+						|| ( getType() == 3 && getPlatformAngle(intervalMode) >= 0.0) ) {
+						return this.x2 + 0.5*entity.getFeetWidth();
+				}
+				return this.x2;
+			}
+			else if (intervalMode == LEFTCLIFF) {
+				return this.x1 + 0.5*entity.getFeetWidth();
+			}
+			else if (intervalMode == RIGHTCLIFF) {
+				return this.x2 + 0.5*entity.getFeetWidth();
+			}
+			
+			return this.x2;
+		}
+		
+		return this.x2;
 	}
 
 	public void setX1(int x1) {
@@ -184,40 +238,75 @@ public class Interval {
 	
 
 	public boolean isLeftCliff() {
-		if ( this.leftInterval == null) {
-			if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) > 0.0)) {
-				return true;
+		if (entityAlignmentMode == 1) {
+			if ( this.leftInterval == null) {
+				if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) > 0.0)) {
+					return true;
+				}
+				return false;
 			}
-			return false;
-		}
-		else {
-			if ((getType() == 1 && this.leftInterval.getType() != 1)
-			|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) > 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
-				   (this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) < 0.0)) )
-			){
-				return true;
+			else {
+				if ((getType() == 1 && this.leftInterval.getType() != 1)
+				|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) > 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
+					   (this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) < 0.0)) )
+				){
+					return true;
+				}
+				return false;
 			}
-			return false;
 		}
+		
+		else if (entityAlignmentMode == 2) {
+			if ( (getPlatformAngle(NONCLIFF) < 0.0 && getType() == 1)
+			  || (getPlatformAngle(NONCLIFF) >= 0.0 && getType() == 3)) {
+				if (this.leftInterval == null) {
+					return true;
+				}
+				else if ( (getType() == 1 && this.leftInterval.getPlatformAngle(NONCLIFF) >= 0.0)
+						|| (getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) < 0.0)) {
+					return true;
+				}
+				return false;
+			}
+		}
+		
+		return false;
 
 	}
 
 	public boolean isRightCliff() {
-		if (this.rightInterval == null) {
-			if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) < 0.0)) {
-				return true;
+		if (entityAlignmentMode == 1) {
+			if (this.rightInterval == null) {
+				if (getType() == 1 || (getType() == 3 && getPlatformAngle(NONCLIFF) < 0.0)) {
+					return true;
+				}
+				return false;
 			}
-			return false;
+			else {
+				if ((this.getType() == 1 && this.rightInterval.getType() != 1)
+				|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) < 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
+						(this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) > 0.0)) )) {
+					return true;
+				}
+				return false;
+			}
 		}
-		else {
-			if ((this.getType() == 1 && this.rightInterval.getType() != 1)
-			|| (getType() == 3 &&  getPlatformAngle(NONCLIFF) < 0.0 && (this.leftInterval.getType() == 1 || this.leftInterval.getType() == 2 || 
-					(this.leftInterval.getType() == 3 && this.leftInterval.getPlatformAngle(NONCLIFF) > 0.0)) )) {
-				return true;
+		
+		else if (entityAlignmentMode == 2) {
+			if ( (getPlatformAngle(NONCLIFF) >= 0.0 && getType() == 1)
+			  || (getPlatformAngle(NONCLIFF) < 0.0 && getType() == 3)) {
+				if (this.rightInterval == null) {
+					return true;
+				}
+				else if ( (getType() == 1 && this.rightInterval.getPlatformAngle(NONCLIFF) < 0.0) 
+						|| (getType() == 3 && this.rightInterval.getPlatformAngle(NONCLIFF) >= 0.0) ) {
+					return true;
+				}
+				return false;
 			}
-			return false;
 		}
 
+		return false;
 	}
 
 

@@ -211,7 +211,7 @@ public class Player implements Entity {
 	
 	public Player(Vector2f[] feetPositions) throws Exception {
 		
-		this.scale = 0.50f;
+		this.scale = 0.350f;
 		this.rotationX = 0.0f;
 		this.rotationY = 0.0f;
 		this.rotationZ = 0.0f;
@@ -221,9 +221,9 @@ public class Player implements Entity {
 		x = -7.0;
 		y = -12.27;
 		z = -5.0;
-		this.height = 0.50;
+		this.height = 0.350;
 		width = 0.50;
-		feetWidth = 0.50;
+		feetWidth = 0.30;
 		feetOSet = 10;
 		feetHeight = 5;
 		dx = 0;
