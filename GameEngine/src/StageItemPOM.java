@@ -1289,7 +1289,7 @@ public class StageItemPOM {
 " float k = 1.0;"+
 
 " a = 0.024f;"+
-" c = 0.001f;"+ // USE 0.001
+" c = 0.0008f;"+ // USE 0.001
 
  "searchRadius = 0.02;"+
 " blurriestRadius = 0.02;"+

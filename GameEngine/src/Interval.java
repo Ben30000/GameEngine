@@ -4,6 +4,7 @@ public class Interval {
 
 	static public double landingPrecision;    // static variables and methods are defined before the creation of an instances of an object and can be referenced as Class.variable/method
 	static public double entityAlignmentMode;
+	static public boolean exactMode;
 	
 	static final public int NONCLIFF = 1;
 	static final public int LEFTCLIFF = 2;
@@ -17,6 +18,7 @@ public class Interval {
 	private double z2;
 	private Interval leftInterval, rightInterval;
 	private int type;                     // type: 1 = Terrain, 2 = Wall, 3 = Ceiling
+	private boolean traversed;
 	
 	
 	
@@ -30,6 +32,7 @@ public class Interval {
 		this.leftInterval = leftInterval;
 		this.rightInterval = rightInterval;
 		this.type = type;
+		this.traversed = false;
 	}
 	
 	
@@ -338,12 +341,22 @@ public class Interval {
 		
 		double x1ToUse = getX1(entity,intervalMode);
 		double y1ToUse = getY1(entity,intervalMode);
-		
-		if (Math.abs(x1ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y1ToUse) <= landingPrecision) {
-			return true;
+
+		if (exactMode) {
+			if (x == x1ToUse && Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y1ToUse ) <= landingPrecision) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 		else {
-			return false;
+			if (Math.abs(x1ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y1ToUse) <= landingPrecision) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 	
 	 }
@@ -353,11 +366,21 @@ public class Interval {
 		double x2ToUse = getX2(entity,intervalMode);
 		double y2ToUse = getY2(entity,intervalMode);
 		
-		if (Math.abs(x2ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y2ToUse) <= landingPrecision) {
-			return true;
+		if (exactMode) {
+			if (x == x2ToUse && Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y2ToUse ) <= landingPrecision) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 		else {
-			return false;
+			if (Math.abs(x2ToUse - x) <= landingPrecision  &&  Math.abs(getLandingPositionFromSpecificPosition(entity, x, intervalMode) - y2ToUse) <= landingPrecision) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 	
 	}
@@ -376,5 +399,26 @@ public class Interval {
 	
 	public void setRightInterval(Interval interval) {
 		this.rightInterval = interval;
+	}
+
+
+	public boolean isTraversed() {
+		return traversed;
+	}
+
+
+	public void setTraversed(boolean traversed) {
+		this.traversed = traversed;
+	}
+	
+	static public boolean areIntervalsSame(Entity entity, Interval intv1, Interval intv2) {
+		
+		if (intv1.getX1(entity, 1) == intv2.getX1(entity, 1) && intv1.getY1(entity, 1) == intv2.getY1(entity, 1)
+				&& intv1.getX2(entity, 1) == intv2.getX2(entity, 1) && intv1.getY2(entity, 1) == intv2.getY2(entity, 1)) {
+			return true;
+		}
+		
+		return false;
+		
 	}
 }

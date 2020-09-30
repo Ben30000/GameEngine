@@ -53,11 +53,17 @@ public class EngineMain {
 		private long window;
 		private int shadowMap1, shadowMap2, shadowMap3, shadowMap4, shadowMap1FBO, shadowMap2FBO, shadowMap3FBO, shadowMap4FBO;
 		
-		private double landingPrecision = 0.00001;
+		private double landingPrecision = 0.0000000001;
 		/*
 		 entityAlignmentMode: 1 for center, 2 for heel/toe 
 		 */
-		private double entityAlignmentMode = 2; 
+		private double entityAlignmentMode = 1; 
+		
+		
+		/*
+		 * exactMode controls whether interval bounds tests uses exact values for equality or a threshold
+		 */
+		private boolean exactMode = true;
 		
 		private int sceneDepthFBO;
 		private int sceneDepthRBO;
@@ -587,12 +593,17 @@ public class EngineMain {
 					}
 					 
 
+					 // Reposition player
+					 
 					 if ( key == GLFW_KEY_R && action == GLFW_PRESS ) {
 						
 					  if (sequence == "Level") {
-						  player.setX(6.528106984053233);
-						  //player.setX(6.528106984053233 + 0.5*0.48);
-						  player.setY(-17.0);
+						  //player.setX(6.528106984053233);
+						  //player.setY(-17.0);
+						  
+						  // For debugging a known position that causes wall collision issue
+						  player.setX(2.239998532495665);
+						  player.setY(-19.223499721956497 + 0.5*2.90);
 						  
 					  }
 					  else if (sequence == "Main Menu") {
@@ -5202,7 +5213,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	            }
   				double taskComplete = System.nanoTime();  				
 
-  				//System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
+  				System.out.println(" Task Completion Time " + (taskComplete - taskBegin) + " ns");
 
   				//lake1.render();
   				//testStageItem1.render();
@@ -6798,6 +6809,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 
 						Interval.landingPrecision = this.landingPrecision;
 						Interval.entityAlignmentMode = this.entityAlignmentMode;
+						Interval.exactMode = this.exactMode;
 						Camera.landingPrecision = this.landingPrecision;
 						
 				        String worldOneTerrain = "C:/StageItems/WORLD_INTERVAL_DATA_1.txt";
