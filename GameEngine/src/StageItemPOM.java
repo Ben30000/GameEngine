@@ -56,7 +56,7 @@ public class StageItemPOM {
 	private int vboIdTansSmooth, vboIdTansPlanar;
 	
 	private int vertexCount, normalsCount, tCount;
-	private Background b;
+	private World b;
 	private float lightCRedChannel, lightCGreenChannel, lightCBlueChannel;
 	private float lightCRedChannelDelta;
 	private float size;
@@ -153,7 +153,7 @@ public class StageItemPOM {
 	private int vboIdBitsSmooth;
 	private int vboIdBitsPlanar;
 	
-	public StageItemPOM(double x, double y, double z, float[] vertices, float[] normalsSmooth, float[] tangentVectorsSmooth, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, Background b, 
+	public StageItemPOM(double x, double y, double z, float[] vertices, float[] normalsSmooth, float[] tangentVectorsSmooth, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, World b, 
 			float size, float rotationX, float rotationY, float rotationZ, boolean isNormalMapped, Wrap normalMap, boolean isDisplacementMapped, Wrap displacementMap, boolean hasMotion, int waterHeightField) throws Exception {
 		
 		System.out.println("indsize is "+ indicies.length);
@@ -1289,7 +1289,7 @@ public class StageItemPOM {
 " float k = 1.0;"+
 
 " a = 0.024f;"+
-" c = 0.0008f;"+ // USE 0.001
+" c = 0.0007f;"+ // USE 0.001
 
  "searchRadius = 0.02;"+
 " blurriestRadius = 0.02;"+

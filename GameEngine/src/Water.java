@@ -66,7 +66,7 @@ public class Water {
 	int environmentCubeMapID;
 	double x, y, z;
 	float heightScale, scale;
-	Background b;
+	World b;
 	float[] pixels;
     float[] vCoords;
     float[] tCoords;
@@ -135,7 +135,7 @@ public class Water {
 	
     
     
-	public Water(int width, int height, double x, double y, double z, float heightScale, float scale, Background b, Wrap w, float heightScaleSize) throws Exception {
+	public Water(int width, int height, double x, double y, double z, float heightScale, float scale, World b, Wrap w, float heightScaleSize) throws Exception {
 		
 		this.width = width;
 		this.height = height;
@@ -2288,7 +2288,7 @@ glBindRenderbuffer(GL_RENDERBUFFER,0);
 		
 	}
 	
-	public void renderToCubeMap(Background b, Player p, CubeMap c) {
+	public void renderToCubeMap(World b, Player p, CubeMap c) {
 		
 		glBindFramebuffer(GL_FRAMEBUFFER,environmentCubeMapFBO);
 		

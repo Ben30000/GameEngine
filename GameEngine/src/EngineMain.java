@@ -314,8 +314,15 @@ public class EngineMain {
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
 
             glfwWindowHint(GLFW_SAMPLES,1);
-			// Create the window
+			
+            // Create the window
+            
+            // FULL SCREEN
 			window = glfwCreateWindow(1920, 1080, "Space Cat", glfwGetPrimaryMonitor(), NULL);
+			
+			// WINDOWED
+			//window = glfwCreateWindow(1920, 1080, "Space Cat", NULL, NULL);
+			
 			if ( window == NULL )
 				throw new RuntimeException("Failed to create the GLFW window");
 			
@@ -707,7 +714,7 @@ public class EngineMain {
 
 				// Get the resolution of the primary monitor
 				GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-System.out.println("Resolution is " + vidmode.width() + " by " + vidmode.height());
+				System.out.println("Resolution is " + vidmode.width() + " by " + vidmode.height());
 				// Center the window
 				glfwSetWindowPos(
 					window,
@@ -729,82 +736,48 @@ System.out.println("Resolution is " + vidmode.width() + " by " + vidmode.height(
 			glfwShowWindow(window);
 			
 			GL.createCapabilities();
-		/*
-			 player = new Player();
-			 
-			 testWrap1 = new Wrap("C:\\TestWrap1.png",0);
-			 
-			 ArrayList<Wrap> testMaterials1 = new ArrayList<Wrap>();
-			 testMaterials1.add(testWrap1);
-			 float[] vCoords1 = new float[]{-2.0f,-1.0f,-10.0f, 0.1f,2.0f,-22.0f, 2.0f,-1.0f,-10.0f};
-			 float[] nVecs1 = new float[]{-1.1f,0.2f,1.0f, 1.4f,1.2f,1.0f, 0.1f,1.0f,0.01f};
-			 float[] tCoords1 = new float[]{0.0f,1.0f, 0.4f,0.0f, 1.0f,1.0f};
-			 ArrayList<float[]> testTCoordsMaterials1 = new ArrayList<float[]>();
-			 testTCoordsMaterials1.add(tCoords1);
-			 
-			 
-				Background testBG1 = new Background();
-             
-			 testStageItem1 = new StageItem(0.2,0.1,0.1,vCoords1,nVecs1,testMaterials1,testTCoordsMaterials1,testBG1);
 		
-			 ArrayList<StageItem> stageItemsBG1 = new ArrayList<StageItem>();
-			 stageItemsBG1.add(testStageItem1);
-			 
-			 testBG1.setStageItems(stageItemsBG1);   
-				Interval interval1 = new Interval(-20.0,100.0,-20.0,20.0,-6.01,26.01,true,1,0,testBG1,player,4,2);
-			ArrayList<Interval> intervalsBG1 = new ArrayList<Interval>();
-			intervalsBG1.add(interval1);
-			testBG1.addInterval(interval1);
-				
-				ArrayList<DependentScrollingBackground> followingZones = new ArrayList<DependentScrollingBackground>();
-				
-				
-				zone = new ScrollingBackground(2,player,followingZones);
 			
-				ArrayList<Background> zoneBGs = new ArrayList<Background>();
-				zoneBGs.add(testBG1);
-				zone.setBackgrounds(zoneBGs);
-		*/
 			
 
-				Wrap mainMenuButton1Wrap = new Wrap("C:\\MMenuButton1.png",0,1,1);
-				Wrap mainMenuButton2Wrap = new Wrap("C:\\MMenuButton2.png",1,1,1);
-				MoveTo mainMenuButton1MoveTo = new MoveTo("BOutAndLoadLevel",null,null);
-				MoveTo mainMenuButton2MoveTo = new MoveTo("BOutAndLoadLevel",null,null);
-				MenuBoxItem mainMenuButton1 = new MenuBoxItem(0.01,0.01,mainMenuButton1Wrap,mainMenuButton1MoveTo,2.0f,0.2f,true,false);
-				MenuBoxItem mainMenuButton2 = new MenuBoxItem(0.01,-0.28,mainMenuButton2Wrap,mainMenuButton2MoveTo, 2.0f,0.2f,false,false);
-				
-			    ArrayList<MenuBoxItem> mainMenuButtons = new ArrayList<MenuBoxItem>();
-			    
-			    mainMenuButtons.add(mainMenuButton1);
-			    mainMenuButtons.add(mainMenuButton2);
-				Wrap mainMenuWrap = new Wrap("C:\\SpaceCatsMainMenu.png",2,1,1);
+			Wrap mainMenuButton1Wrap = new Wrap("C:/StageItems/Menus/MainMenuButtonPlay.png",0,1,1);
+			Wrap mainMenuButton2Wrap = new Wrap("C:/StageItems/Menus/MainMenuButtonSettings.png",1,1,1);
+			MoveTo mainMenuButton1MoveTo = new MoveTo("BOutAndLoadLevel",null,null);
+			MoveTo mainMenuButton2MoveTo = new MoveTo("BOutAndLoadLevel",null,null);
+			MenuBoxItem mainMenuButton1 = new MenuBoxItem(0.01,0.01,mainMenuButton1Wrap,mainMenuButton1MoveTo,2.0f,0.2f,true,false);
+			MenuBoxItem mainMenuButton2 = new MenuBoxItem(0.01,-0.28,mainMenuButton2Wrap,mainMenuButton2MoveTo, 2.0f,0.2f,false,false);
+			
+		    ArrayList<MenuBoxItem> mainMenuButtons = new ArrayList<MenuBoxItem>();
+		    
+		    mainMenuButtons.add(mainMenuButton1);
+		    mainMenuButtons.add(mainMenuButton2);
+			Wrap mainMenuWrap = new Wrap("C:/StageItems/Menus/MainMenu.png",2,1,1);
 
 
 
 
 			
-				String vShaderRenderToScreenQuad = "#version 430\n" +
-		" layout (location = 0) in vec3 vPosition;\n" +
-		" layout (location = 1) in vec2 tCoord;\n" +
-		
-		" out vec2 sampleCoord;\n" +
-		
-		" void main() {\n" +
-		"  sampleCoord = tCoord;\n" +
-		" gl_Position = vec4(vPosition,1.0);\n" +
-		" } ";
-		
-		String fShaderRenderToScreenQuad = "#version 430\n" +
-		" in vec2 sampleCoord;\n" +
-		" out vec4 fragColor;"+
-		" uniform sampler2D scene;\n"+
+			String vShaderRenderToScreenQuad = "#version 430\n" +
+			" layout (location = 0) in vec3 vPosition;\n" +
+			" layout (location = 1) in vec2 tCoord;\n" +
 			
-		
-		" void main() {\n" +
-		" vec3 color = texture(scene,sampleCoord).rgb;"+
-		" fragColor = vec4(color,1.0);"+
-		"   } ";
+			" out vec2 sampleCoord;\n" +
+			
+			" void main() {\n" +
+			"  sampleCoord = tCoord;\n" +
+			" gl_Position = vec4(vPosition,1.0);\n" +
+			" } ";
+			
+			String fShaderRenderToScreenQuad = "#version 430\n" +
+			" in vec2 sampleCoord;\n" +
+			" out vec4 fragColor;"+
+			" uniform sampler2D scene;\n"+
+				
+			
+			" void main() {\n" +
+			" vec3 color = texture(scene,sampleCoord).rgb;"+
+			" fragColor = vec4(color,1.0);"+
+			"   } ";
 		
 		
 			
@@ -934,16 +907,7 @@ System.out.println("Resolution is " + vidmode.width() + " by " + vidmode.height(
 	                MemoryUtil.memFree(verticesBuffer);
 	            }
 	        }
-	        
-        
 
-		    
-		    
-		    
-		    
-		    
-		    
-		    
 		    
 		    
 		    
@@ -952,8 +916,6 @@ System.out.println("Resolution is " + vidmode.width() + " by " + vidmode.height(
 		    
 		    // Far Plane Frustum Positions
 		    // VBO For Frustum Far Plane Corner Positions, in View Space
-		    
-		    
 
 			Matrix4f testProjectionM = new Matrix4f();
 	 		testProjectionM.setPerspective((float)(Math.PI/3.0),(float)(1920.0/1080.0),(float)(0.001),(float)(160.0));
@@ -4140,7 +4102,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				}
 				
 			
-				int testLakeID = zone.getBackgrounds().get(0).getBodiesOfWater().get(0).getCurHeightFieldID();
+				int testLakeID = zone.getCurrentWorld().getBodiesOfWater().get(0).getCurHeightFieldID();
 	         //   glEnable(GL_MULTISAMPLE);
 			
 	        
@@ -4165,9 +4127,9 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		testCreature1.renderShadowMap(lightMatrix1,shadowMap1FBO,lightView1,lightFrustumCenter1,lightFrustumCenterOriginal1, shadowMap1Size,mRange1,mnZ1, mxZ1);
   	  	  
 	    		
-	    		for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	    			if (!zone.getBackgrounds().get(0).getStageItems().get(z).isHasMotion()) {
-	    			zone.getBackgrounds().get(0).getStageItems().get(z).renderShadowMap(lightMatrix1, shadowMap1FBO,shadowMap1, lightProjection1, lightView1, mRange1, shadowMap1Size);
+	    		for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	    			if (!zone.getCurrentWorld().getStageItems().get(z).isHasMotion()) {
+	    			zone.getCurrentWorld().getStageItems().get(z).renderShadowMap(lightMatrix1, shadowMap1FBO,shadowMap1, lightProjection1, lightView1, mRange1, shadowMap1Size);
 	    			}
 	            }
 	       
@@ -4185,10 +4147,10 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		player.renderShadowMap(lightMatrix2,shadowMap2FBO,lightView2,lightFrustumCenter2,lightFrustumCenterOriginal2, shadowMap2Size,mRange2,mnZ2, mxZ2,globalMainCameraMatrix,2);
 	    		testCreature1.renderShadowMap(lightMatrix2,shadowMap2FBO,lightView2,lightFrustumCenter2,lightFrustumCenterOriginal2, shadowMap2Size,mRange2,mnZ2, mxZ2);
     	        
-	    		for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	    			if (!zone.getBackgrounds().get(0).getStageItems().get(z).isHasMotion()) {
+	    		for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	    			if (!zone.getCurrentWorld().getStageItems().get(z).isHasMotion()) {
 		    			
-	    			zone.getBackgrounds().get(0).getStageItems().get(z).renderShadowMap(lightMatrix2, shadowMap2FBO,shadowMap2,lightProjection2, lightView2, mRange2, shadowMap2Size);
+	    			zone.getCurrentWorld().getStageItems().get(z).renderShadowMap(lightMatrix2, shadowMap2FBO,shadowMap2,lightProjection2, lightView2, mRange2, shadowMap2Size);
 	    			}
 	            }
 
@@ -4206,10 +4168,10 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		player.renderShadowMap(lightMatrix3,shadowMap3FBO,lightView3,lightFrustumCenter3,lightFrustumCenterOriginal3, shadowMap3Size,mRange3,mnZ2, mxZ3,globalMainCameraMatrix,3);
 	    		testCreature1.renderShadowMap(lightMatrix3,shadowMap3FBO,lightView3,lightFrustumCenter3,lightFrustumCenterOriginal3, shadowMap3Size,mRange3,mnZ2, mxZ3);
 	    	    
-	    		for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	    			if (!zone.getBackgrounds().get(0).getStageItems().get(z).isHasMotion()) {
+	    		for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	    			if (!zone.getCurrentWorld().getStageItems().get(z).isHasMotion()) {
 		    			
-	    			zone.getBackgrounds().get(0).getStageItems().get(z).renderShadowMap(lightMatrix3, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
+	    			zone.getCurrentWorld().getStageItems().get(z).renderShadowMap(lightMatrix3, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
 	    			}
 	            }
 	        
@@ -4230,10 +4192,10 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		player.renderShadowMap(lightMatrix4,shadowMap4FBO,lightView4,lightFrustumCenter4,lightFrustumCenterOriginal4, shadowMap4Size,mRange3,mnZ2, mxZ3,globalMainCameraMatrix,4);
 	    		testCreature1.renderShadowMap(lightMatrix4,shadowMap4FBO,lightView4,lightFrustumCenter4,lightFrustumCenterOriginal4, shadowMap4Size,mRange3,mnZ2, mxZ3);
 	    	    
-	    		for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	    			if (!zone.getBackgrounds().get(0).getStageItems().get(z).isHasMotion()) {
+	    		for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	    			if (!zone.getCurrentWorld().getStageItems().get(z).isHasMotion()) {
 		    			
-	    			zone.getBackgrounds().get(0).getStageItems().get(z).renderShadowMap(lightMatrix4, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
+	    			zone.getCurrentWorld().getStageItems().get(z).renderShadowMap(lightMatrix4, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
 	    			}
 	            }
 
@@ -4254,10 +4216,10 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		player.renderShadowMap(lightMatrix5,shadowMap5FBO,lightView5,lightFrustumCenter5,lightFrustumCenterOriginal5, shadowMap5Size,mRange3,mnZ2, mxZ3,globalMainCameraMatrix,5);
 	    		testCreature1.renderShadowMap(lightMatrix5,shadowMap5FBO,lightView5,lightFrustumCenter5,lightFrustumCenterOriginal5, shadowMap5Size,mRange3,mnZ2, mxZ3);
 	    	    
-	    		for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	    			if (!zone.getBackgrounds().get(0).getStageItems().get(z).isHasMotion()) {
+	    		for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	    			if (!zone.getCurrentWorld().getStageItems().get(z).isHasMotion()) {
 		    			
-	    			zone.getBackgrounds().get(0).getStageItems().get(z).renderShadowMap(lightMatrix5, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
+	    			zone.getCurrentWorld().getStageItems().get(z).renderShadowMap(lightMatrix5, shadowMap3FBO,shadowMap3,lightProjection3, lightView3, mRange3, shadowMap3Size);
 	    			}
 	            }
 	        
@@ -4318,8 +4280,8 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	            glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT2,GL_TEXTURE_2D,sceneNormals,0);
 				
 	    		
-	            for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-	            	zone.getBackgrounds().get(0).getStageItems().get(z).render(mainCamera,lightMatrix1, lightMatrix2, lightMatrix3,lightMatrix4, lightMatrix5, normalLightTransformMatrix, 
+	            for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+	            	zone.getCurrentWorld().getStageItems().get(z).render(mainCamera,lightMatrix1, lightMatrix2, lightMatrix3,lightMatrix4, lightMatrix5, normalLightTransformMatrix, 
 	              shadowMap1, shadowMap2, shadowMap3,shadowMap4, shadowMap5, rotations, screenBrightness,testLakeID,false,1,false, sunDirection, materialM, shouldTestSearchRadius, tessellationEnabled, globalProjectionMatrix);
 	            }
   	     	
@@ -5040,7 +5002,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
     			// TODO
     			// Point light shadows, rendering depth to cube map
        			glBindFramebuffer(GL_DRAW_FRAMEBUFFER,pointLight1CubeMapShadowsFBO);
-    			zone.getBackgrounds().get(0).getStageItems().get(0).renderDepthCubeMap(screenBrightness,pointLight1CubeMapShadows,(Vector3f)null,1.0f,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null);
+    			zone.getCurrentWorld().getStageItems().get(0).renderDepthCubeMap(screenBrightness,pointLight1CubeMapShadows,(Vector3f)null,1.0f,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null,(Matrix4f)null);
     			
     			
     			
@@ -5157,8 +5119,8 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 	    		
 	    		else if (drawingMode.compareTo("Wireframe") == 0) {
 	    			
-					 for (int z = 0; z < zone.getBackgrounds().get(0).getStageItems().size(); z++) {
-				     	zone.getBackgrounds().get(0).getStageItems().get(z).renderWireFrame(mainCamera,normalLightTransformMatrix,1.0f,tessellationEnabled); 
+					 for (int z = 0; z < zone.getCurrentWorld().getStageItems().size(); z++) {
+				     	zone.getCurrentWorld().getStageItems().get(z).renderWireFrame(mainCamera,normalLightTransformMatrix,1.0f,tessellationEnabled); 
 				     }
 					 
 					 System.out.println("SLIDER CURRENT VALUE IS " + testSlider1.getValue());
@@ -5289,7 +5251,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					mainCamera = new Camera(7.0,-18.990,0.0, 7.0,-18.990,-8.0);
 					 ArrayList<Creature> testCreatures = new ArrayList<Creature>();
 					 testCreatures.add(testCreature1);
-					 Background testBG1 = new Background(player);
+					 World world1 = new World(player);
 
 					 
 					 testSphere = generateSphereOfPoints(sSAOSamples);
@@ -5302,7 +5264,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 
 					 // Water Initialize
 					    
-						lake1 = new Water(1100,1100,-20.1,-15.971,0.01,0.50f,20.0f,testBG1,testWrap1,16.0f);  // Scale was 0.0261 
+						lake1 = new Water(1100,1100,-20.1,-15.971,0.01,0.50f,20.0f,world1,testWrap1,16.0f);  // Scale was 0.0261 
 			
 					 testWrap1 = new Wrap("C:\\TestWrap2.png",0,1,1);
 					 
@@ -5661,9 +5623,9 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				        testTCoordsMaterials4.add(stageItemT);
  				        
 				        //testStageItem1Nice = new StageItem(instanceTranslation.x, instanceTranslation.y, instanceTranslation.z, stageItemV,stageItemSmoothN,stageItemPlanarN,stageItemIn,
-				        		//stageItemMaterials,testTCoordsMaterials4,testBG1,instanceSize,instanceRotation.x, instanceRotation.y, instanceRotation.z, stageItemHasNormalMap,stageItemNormalMap,stageItemHasDisplacementMap,stageItemDisplacementMap, stageItemMoves, lake1.getCurHeightFieldID());
+				        		//stageItemMaterials,testTCoordsMaterials4,world1,instanceSize,instanceRotation.x, instanceRotation.y, instanceRotation.z, stageItemHasNormalMap,stageItemNormalMap,stageItemHasDisplacementMap,stageItemDisplacementMap, stageItemMoves, lake1.getCurHeightFieldID());
 				        		testStageItem1Nice = new StageItemPOM(instanceTranslation.x, instanceTranslation.y, instanceTranslation.z, stageItemV,stageItemSmoothN, stageItemSmoothTan, stageItemIn,
-				        		stageItemMaterials,testTCoordsMaterials4,testBG1,instanceSize,instanceRotation.x, instanceRotation.y, instanceRotation.z, stageItemHasNormalMap,stageItemNormalMap,stageItemHasDisplacementMap,stageItemDisplacementMap, stageItemMoves, lake1.getCurHeightFieldID());
+				        		stageItemMaterials,testTCoordsMaterials4,world1,instanceSize,instanceRotation.x, instanceRotation.y, instanceRotation.z, stageItemHasNormalMap,stageItemNormalMap,stageItemHasDisplacementMap,stageItemDisplacementMap, stageItemMoves, lake1.getCurHeightFieldID());
 						  
 				       stageItemsBG1.add(testStageItem1Nice); 
 				       
@@ -5735,17 +5697,17 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 
 					 int[] indicies2 = new int[] {0,1,2, 0,2,3};
 
-				     //  testStageItem1Nice2 = new StageItem(12.1,-4.7,-4.2,stageItemV,stageItemN,stageItemIn,testMaterials2,testTCoordsMaterials4,testBG1,4.06f,-0.94f);
+				     //  testStageItem1Nice2 = new StageItem(12.1,-4.7,-4.2,stageItemV,stageItemN,stageItemIn,testMaterials2,testTCoordsMaterials4,world1,4.06f,-0.94f);
 
-					 //testStageItem1 = new StageItem(0.2,0.1,0.1,vCoords1,nVecs1,indicies1,testMaterials1,testTCoordsMaterials1,testBG1,1.0f,0.0f,false,null, false, null, false, lake1.getCurHeightFieldID());
-				     //testStageItem2 = new StageItem(-0.4f,0.1f,-0.9f,vCoords2,nVecs2,indicies2,testMaterials1,testTCoordsMaterials2,testBG1,0.3f,0.0f,false,null, false, null, false, lake1.getCurHeightFieldID());
+					 //testStageItem1 = new StageItem(0.2,0.1,0.1,vCoords1,nVecs1,indicies1,testMaterials1,testTCoordsMaterials1,world1,1.0f,0.0f,false,null, false, null, false, lake1.getCurHeightFieldID());
+				     //testStageItem2 = new StageItem(-0.4f,0.1f,-0.9f,vCoords2,nVecs2,indicies2,testMaterials1,testTCoordsMaterials2,world1,0.3f,0.0f,false,null, false, null, false, lake1.getCurHeightFieldID());
 					// stageItemsBG1.add(testStageItem1);
 					 //stageItemsBG1.add(testStageItem2);
 				
 				//	 stageItemsBG1.add(testStageItem1Nice);
 					// stageItemsBG1.add(testStageItem1Nice2);
 					 
-					 testBG1.setStageItems(stageItemsBG1);   
+					 world1.setStageItems(stageItemsBG1);   
 					 
 				
 					 
@@ -6808,6 +6770,7 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					 */
 					 
 						Interval.landingPrecision = this.landingPrecision;
+						IntervalHashMap.landingPrecision = this.landingPrecision;
 						Interval.entityAlignmentMode = this.entityAlignmentMode;
 						Interval.exactMode = this.exactMode;
 						Camera.landingPrecision = this.landingPrecision;
@@ -6838,6 +6801,10 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            
 				            bufferedReader.readLine();
 				            bufferedReader.readLine();
+				            
+				            ArrayList<Interval> worldTerrainArrayList = new ArrayList<Interval>();
+				            ArrayList<Interval> worldSlopedWallsArrayList = new ArrayList<Interval>();
+				            ArrayList<Interval> worldCeilingsArrayList = new ArrayList<Interval>();
 				            
 				            while((line = bufferedReader.readLine()) != null) {
 					            
@@ -6870,13 +6837,13 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 					            		null, null, currentIntervalType
 					            		);
 					            if (currentIntervalType == 1) {
-					            	testBG1.addInterval(interval);
+					            	worldTerrainArrayList.add(interval);
 					            }
 					            else if (currentIntervalType == 2) {
-					            	testBG1.addSlopedWall(interval);
+					            	worldSlopedWallsArrayList.add(interval);
 					            }
 					            else if (currentIntervalType == 3) {
-					            	testBG1.addCeiling(interval);
+					            	worldCeilingsArrayList.add(interval);
 					            }
 					            
 					            allIntervals.add(interval);
@@ -6905,34 +6872,64 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 				            	System.out.println("rightNeighborIndex = "+ intervalRightNeighborIndex);
 				            	
 				            	if (Character.compare(intervalLeftNeighborType, 't') == 0) {
-				            		allIntervals.get(g).setLeftInterval(testBG1.getIntervals().get(intervalLeftNeighborIndex));
+				            		allIntervals.get(g).setLeftInterval(worldTerrainArrayList.get(intervalLeftNeighborIndex));
 				            	}
 				            	else if (Character.compare(intervalLeftNeighborType, 'w') == 0) {
-				            		allIntervals.get(g).setLeftInterval(testBG1.getSlopedWalls().get(intervalLeftNeighborIndex));
+				            		allIntervals.get(g).setLeftInterval(worldSlopedWallsArrayList.get(intervalLeftNeighborIndex));
 				            	}
 				            	else if (Character.compare(intervalLeftNeighborType, 'c') == 0) {
-				            		allIntervals.get(g).setLeftInterval(testBG1.getCeilings().get(intervalLeftNeighborIndex));
+				            		allIntervals.get(g).setLeftInterval(worldCeilingsArrayList.get(intervalLeftNeighborIndex));
 				            	}
 				            	
 				            	if (Character.compare(intervalRightNeighborType, 't') == 0) {
-				            		allIntervals.get(g).setRightInterval(testBG1.getIntervals().get(intervalRightNeighborIndex));
+				            		allIntervals.get(g).setRightInterval(worldTerrainArrayList.get(intervalRightNeighborIndex));
 				            	}
 				            	else if (Character.compare(intervalRightNeighborType, 'w') == 0) {
-				            		allIntervals.get(g).setRightInterval(testBG1.getSlopedWalls().get(intervalRightNeighborIndex));
+				            		allIntervals.get(g).setRightInterval(worldSlopedWallsArrayList.get(intervalRightNeighborIndex));
 				            	}
 				            	else if (Character.compare(intervalRightNeighborType, 'c') == 0) {
-				            		allIntervals.get(g).setRightInterval(testBG1.getCeilings().get(intervalRightNeighborIndex));
+				            		allIntervals.get(g).setRightInterval(worldCeilingsArrayList.get(intervalRightNeighborIndex));
 				            	}
 				            	
 				            }
 				            
 				            System.out.println("Finished loading intervals...");
-				            for (int j = 0; j < testBG1.getIntervals().size(); j++) {
-				            	System.out.println("interval left neighbor : "+testBG1.getIntervals().get(j).getLeftInterval());
-				            	System.out.println("interval right neighbor : "+testBG1.getIntervals().get(j).getRightInterval());
+				            for (int j = 0; j < worldTerrainArrayList.size(); j++) {
+				            	System.out.println("interval left neighbor : "+worldTerrainArrayList.get(j).getLeftInterval());
+				            	System.out.println("interval right neighbor : "+worldTerrainArrayList.get(j).getRightInterval());
 				            }
 				            
 				            
+				            /*
+				             * Finally, set the HASH MAPS for the current world 
+				             */				             
+				            System.out.println("BEFORE INITALIZATION OF HASH MAPS");
+				            world1.setTerrainHashMap(worldTerrainArrayList, -100.0, 0.50);
+				            world1.setSlopedWallsHashMap(worldSlopedWallsArrayList, -100.0, 0.50);
+				            world1.setCeilingsHashMap(worldCeilingsArrayList, -100.0, 0.50);
+				            
+				            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+				            System.out.println("MADE IF PAST INITIALIZATION OF HASH MAPS");
+				            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+				            System.out.println("Checking hash maps for correctness...");
+				            int testTerrainHashCodes1[] = world1.getTerrain().genHashCodesFromKeysX(0.0, 1.0);
+				            for (int z = 0; z < testTerrainHashCodes1.length; z++) {
+				            	int thisHashCode = testTerrainHashCodes1[z];
+				            	System.out.println("this hash code is "+thisHashCode);
+				            	ArrayList<Interval> bucketOfTerrain = world1.getTerrain().getIntervalList(thisHashCode);
+				            	if (bucketOfTerrain == null) {
+				            		System.out.println("- terrain bucket at this hash code is null");
+				            	}
+				            	else {
+				            		System.out.println(" - at this hashCode there are "+bucketOfTerrain.size()+" terrain intervals");
+				            		for (int h = 0; h < bucketOfTerrain.size(); h++) {
+				            			System.out.println("     * terrain "+ h + " has x1 = "+bucketOfTerrain.get(h).getX1(null, 1) + " and x2 = "+ bucketOfTerrain.get(h).getX2(null, 1));
+				            		}
+				            	}
+				            					            	
+				            }
+				            System.out.println();
+				            //System.exit(0);
 				            // Always close files.
 				            bufferedReader.close();    
 				            
@@ -6956,14 +6953,14 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
    
 				
 	 
-				   DeadEndInterval lde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,testBG1,1);
-			//	    DeadEndInterval rde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,testBG1,2);
+				   DeadEndInterval lde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,world1,1);
+			//	    DeadEndInterval rde1 = new DeadEndInterval(-20.0,100.0,-10.0,100.0,0.0,0.0,world1,2);
 				    
 				    ArrayList<DeadEndInterval> bg1DEs = new ArrayList<DeadEndInterval>();
 				    bg1DEs.add(lde1);
 				//    bg1DEs.add(rde1);
 				    
-				    testBG1.setDeadEndIntervals(bg1DEs);
+				    world1.setDeadEndIntervals(bg1DEs);
 				    
 				
 					
@@ -6995,28 +6992,27 @@ shadowMap3Size)/sMap3SizeRatio)) , lightFrustumCenter3.z);
 		*/
 		glfwSwapInterval(0);
 		
+		
 							//		for (int a = 0; a < 10000; a++) {
 				//	lake1.update();
 					//}
 			              
 									glfwSwapInterval(1);
 									
-                  ArrayList<Water> testBG1BodiesOfWater = new ArrayList<Water>();
-                   testBG1BodiesOfWater.add(lake1);
-                   testBG1.setBodiesOfWater(testBG1BodiesOfWater);
+                  ArrayList<Water> world1BodiesOfWater = new ArrayList<Water>();
+                   world1BodiesOfWater.add(lake1);
+                   world1.setBodiesOfWater(world1BodiesOfWater);
                    
                    
 					//	ArrayList<DependentScrollingBackground> followingZones = new ArrayList<DependentScrollingBackground>();
 						
-						 player.setBG(testBG1);
-						 testCreature1.setBG(testBG1);
+						 player.setBG(world1);
+						 testCreature1.setBG(world1);
 						 
 						
 						zone = new WorldUpdater(2,player,landingPrecision);
 					
-						ArrayList<Background> zoneBGs = new ArrayList<Background>();
-						zoneBGs.add(testBG1);
-						zone.setBackgrounds(zoneBGs);
+						zone.setCurrentWorld(world1);
 						zone.setCreatures(testCreatures);
 						
 						sequence = "Move To";

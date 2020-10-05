@@ -55,9 +55,8 @@ import static org.lwjgl.opengl.GL30.*;
  import org.joml.Quaternionf; 
 
 
-public class Background {
+public class World {
 	
-	private BufferedImage image;
 	private double x;
 	private double y;
 	private double z;
@@ -76,13 +75,16 @@ public class Background {
 	private ArrayList<Object> mobs;
 	private Image background;
     private int bgMovementThreshold;
-    private ArrayList<Interval> intervals;
-    private ArrayList<Interval> slopedWalls;
+    
+    private IntervalHashMap terrain;
+    private IntervalHashMap ceilings;
+    private IntervalHashMap slopedWalls;
+    
     private ArrayList<CameraInterval> cameraIntervals;
-    //private ArrayList<Wall> walls;
+    
     private ArrayList<StageItemPOM> stageItems;
     private ArrayList<Interval> items;
-    private ArrayList<Interval> ceilings;
+    
     
     private boolean playerFalls;
     private boolean bgFalls;
@@ -97,7 +99,7 @@ public class Background {
     private double landingPrecision = 0.00001;
     
 	
-	public Background(Player p) {
+	public World(Player p) {
 		x = 7.0;
 		//y = -1.41;
 		y = 18.0;
@@ -113,16 +115,8 @@ public class Background {
 	    mobs = new ArrayList<Object>();
 	    onScreen = false;
 	    
-	    intervals = new ArrayList<Interval>();
-	    
-	    slopedWalls = new ArrayList<Interval>();
-	    
-	    
-	    //walls = new ArrayList<Wall>();
-	    
 	    items = new ArrayList<Interval>();
 	    
-	    ceilings = new ArrayList<Interval>();
 	    
 	    deadEndIntervals = new ArrayList<DeadEndInterval>();
 	    
@@ -164,13 +158,14 @@ public class Background {
 		return mobs;
 	}
 	
-	public ArrayList<Interval> getIntervals() {
-		return intervals;
+	public IntervalHashMap getTerrain() {
+		return terrain;
 	}
 	
-	public void addInterval(Interval interval) {
-		intervals.add(interval);
+	public void setTerrainHashMap(ArrayList<Interval> terrain, double minX1, double mapChunkSize) {
+		this.terrain = new IntervalHashMap(terrain, minX1, 100.0, mapChunkSize);
 	}
+	
 	public boolean isLDeadEnd() {
 		return lDeadEnd;
 	}
@@ -664,30 +659,23 @@ public class Background {
 		this.bodiesOfWater = bodiesOfWater;
 	}
 
-	public ArrayList<Interval> getSlopedWalls() {
+	public IntervalHashMap getSlopedWalls() {
 		return slopedWalls;
 	}
 
-	public void setSlopedWalls(ArrayList<Interval> slopedWalls) {
-		this.slopedWalls = slopedWalls;
+	public void setSlopedWallsHashMap(ArrayList<Interval> slopedWalls, double minX1, double mapChunkSize) {
+		this.slopedWalls = new IntervalHashMap(slopedWalls, minX1, 100.0, mapChunkSize);
 	}
 	
-	public void addSlopedWall(Interval slopedWall) {
-		this.slopedWalls.add(slopedWall);
-	}
 
-	public ArrayList<Interval> getCeilings() {
+	public IntervalHashMap getCeilings() {
 		return ceilings;
 	}
 
-	public void setCeilings(ArrayList<Interval> ceilings) {
-		this.ceilings = ceilings;
+	public void setCeilingsHashMap(ArrayList<Interval> ceilings, double minX1, double mapChunkSize) {
+		this.ceilings = new IntervalHashMap(ceilings, minX1, 100.0, mapChunkSize);
 	}
 	
-	public void addCeiling(Interval ceiling) {
-		
-		this.ceilings.add(ceiling);
-	}
 	
 	public void setRecentInterval(Interval interval) {
 		this.recentInterval = interval;

@@ -37,7 +37,11 @@ public class Interval {
 	
 	
 	public double getX1(Entity entity, int intervalMode) {
-
+		
+		if (entity == null) {
+			return this.x1; 
+		}
+		
 		if (entityAlignmentMode == 1) {
 			if (intervalMode == NONCLIFF) {
 				if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
@@ -94,6 +98,10 @@ public class Interval {
 	
 	public double getX2(Entity entity, int intervalMode) {
 
+		if (entity == null) {
+			return this.x2; 
+		}
+		
 		if (entityAlignmentMode == 1) {
 			if (intervalMode == NONCLIFF) {
 				if ( (getType() == 2 && getPlatformAngle(intervalMode) >= 0.0)
@@ -207,6 +215,12 @@ public class Interval {
 	
 
 	public double getY1(Entity entity, int intervalMode) {
+		
+		if (entity == null) {
+			return this.y1; 
+		}
+		
+		
 		if (intervalMode == RIGHTCLIFF) {
 			return this.y2;
 		}
@@ -219,6 +233,12 @@ public class Interval {
 	
 
 	public double getY2(Entity entity, int intervalMode) {
+		
+		if (entity == null) {
+			return this.y2; 
+		}
+		
+		
 		if (intervalMode == LEFTCLIFF) {
 			return this.y1;
 		}

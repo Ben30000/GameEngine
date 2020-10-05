@@ -6,9 +6,9 @@ public class DeadEndInterval {
 	private double y1, y2;
 	private int type;                       // Type 1 = LDE, 2 = RDE, 3 = UDE, 4 = BDE.
 	private double targetX, targetY;
-	private Background b;
+	private World b;
 	
-	public DeadEndInterval(double x1, double x2, double y1, double y2, double targetX, double targetY, Background b,int type) {
+	public DeadEndInterval(double x1, double x2, double y1, double y2, double targetX, double targetY, World b,int type) {
 		
 		this.x1 = x1;
 		this.x2 = x2;

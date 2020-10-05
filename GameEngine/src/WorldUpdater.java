@@ -8,8 +8,7 @@ import org.joml.Vector2d;
 
 public class WorldUpdater {
 
-	private ArrayList<Background> backgrounds;
-	private ArrayList<Background> activeBackgrounds;
+	private World currentWorld;
 	private ArrayList<Creature> creatures;
 	private int dx;
 	private int dy;
@@ -33,6 +32,7 @@ public class WorldUpdater {
 	private double gravityAcceleration;
 	private double displacement;
 	private double landingPrecision;
+	private double outOfIntervalRangeThreshold = 0.401;  // used for a terrain path tracing optimization
 	boolean eventHappened = false;
 	private double fallConstant1, fallConstant2;
 	private double jumpConstant1, jumpConstant2;
@@ -45,8 +45,6 @@ public class WorldUpdater {
 	
 	
 	public WorldUpdater(int initialScrollCounter, Player p, double landingPrecision) {
-		backgrounds = new ArrayList<Background>();
-		activeBackgrounds = new ArrayList<Background>();
 		dx = 0;
 		dy = 0;
 		totalBGDX = 0;
@@ -82,21 +80,7 @@ public class WorldUpdater {
 		double testResultMethod2 = testSP + (testX1 - testX1)*(testEP - testSP)/(testX2 - testX1);
 		double testMovePositionX = testX1 + Math.cos(testAngle)*980.0;
 		double testMovePositionY = testSP + Math.sin(testAngle)*980.0;
-		/*System.out.println("TESTANGLE IS "+ testAngle);
-		System.out.println("TESTRESULT IS "+ testResult);
-		System.out.println("TESTRESULTMETHOD2 IS "+ testResultMethod2);
-		System.out.println("  TESTMOVEPOSX = "+ testMovePositionX);
-		System.out.println("  TESTMOVEPOSY = "+ testMovePositionY);*/
-		
-		activeBackgrounds = backgrounds;
 
-		
-		
-
-		for (Background b : getBackgrounds()) {
-			b.setPreviousX(b.getX());
-			b.setPreviousY(b.getY());
-		}
 
 		player.setPreviousX(player.getX());
 		player.setPreviousY(player.getY());
@@ -109,7 +93,6 @@ public class WorldUpdater {
 		//this.panCameraVertically(mainCamera, player);
 
 		double pYB42 = player.getY() - 0.5 * player.getHeight();
-		double bgYB42 = activeBackgrounds.get(0).getY();
 	
 
 		if (finishedCameraShift) {
@@ -184,7 +167,10 @@ public class WorldUpdater {
 			System.out.println("IS BELOW PLATFORM: BEFORE jumpOrFall");
 			System.exit(0);
 		}
+		double timeB4JumpOrFall = System.nanoTime();
 		this.jumpOrFall(player);
+		double timeAfterJumpOrFall = System.nanoTime();
+		System.out.println("!@#$%^ jumpOrFall took "+((timeAfterJumpOrFall-timeB4JumpOrFall)/1000000000.0)+" s");
 		if (isBelowPlatform(player, player.getX(), player.getY() - 0.5*player.getHeight())) {
 			System.out.println("IS BELOW PLATFORM: AFTER jumpOrFall");
 			System.exit(0);
@@ -330,14 +316,14 @@ public class WorldUpdater {
 		
 		
 		// Check if a ceiling will stop movement while on a terrain platforrm, or if it will alter trajectory while in air
-		if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
-			System.out.println("IS BELOW PLATFORM: BEFORE checkForCeiling");
-			System.exit(0);
-		}
+		//if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
+		//	System.out.println("IS BELOW PLATFORM: BEFORE checkForCeiling");
+		//	System.exit(0);
+		//}
 		double footX = entity.getX(),   footY = entity.getY() - 0.5*entity.getHeight();
 		double newFootX = entity.getX() + dxAmount,   newFootY = entity.getY() - 0.5*entity.getHeight() + dyAmount;
 		double tenativeDX = dxAmount,   tenativeDY = dyAmount;
-		double finalDX = tenativeDX, finalDY = tenativeDY;
+		double finalDX = tenativeDX, finalDY = tenativeDY;   
 		// newAmountToMove is the value returned by this method
 		double newAmountToMove = amountToMove;
 		
@@ -349,12 +335,30 @@ public class WorldUpdater {
 		// ** Use approximate mode for end point checking when dealing with motion being walled **
 		Interval.exactMode = false;
 		
-		for (int k = 0; k < activeBackgrounds.size(); k++) {
-			for (int r = 0; r < activeBackgrounds.get(k).getSlopedWalls().size(); r++ ) {
+		double entityExtentPaddingLeft = 0.0, entityExtentPaddingRight = 0.0;
+		if (dxAmount > 0.0) {
+			entityExtentPaddingRight = dxAmount;
+		}
+		else if (dxAmount <= 0.0) {
+			entityExtentPaddingLeft= dxAmount;
+		}
+		int hashCodes[] = currentWorld.getSlopedWalls().genHashCodesFromKeysX(footX + entityExtentPaddingLeft - 0.5*entity.getFeetWidth(),  footX + entityExtentPaddingRight + 0.5*entity.getFeetWidth());	
+		
+		for (int k = 0; k < hashCodes.length; k++) {
+				
+			int thisHashCode = hashCodes[k];
+			ArrayList<Interval> bucketOfWalls = currentWorld.getSlopedWalls().getIntervalList(thisHashCode);
+			if (bucketOfWalls == null) {
+				continue;
+			}
+			
+			for (int r = 0; r < bucketOfWalls.size(); r++ ) {
 				this.intervalsInspected++;
-				Interval aWall = activeBackgrounds.get(k).getSlopedWalls().get(r);
+				Interval aWall = bucketOfWalls.get(r);
 				double wallAngle = aWall.getPlatformAngle(1);
 				double x1 = aWall.getX1(entity,1),  x2 = aWall.getX2(entity,1);
+				
+				
 				double startingWallPosition = aWall.getY1(entity, 1),  endingWallPosition = aWall.getY2(entity, 1);
 				
 				
@@ -431,10 +435,10 @@ public class WorldUpdater {
 		entity.setDX(0.0);
 		entity.setDY(0.0);
 		
-		if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
-			System.out.println("IS BELOW PLATFORM: AFTER checkForCeiling and wall tests");
-			System.exit(0);
-		}
+		//if (isBelowPlatform(entity, entity.getX(), entity.getY() - 0.5*entity.getHeight())) {
+		//	System.out.println("IS BELOW PLATFORM: AFTER checkForCeiling and wall tests");
+		//	System.exit(0);
+		//}
 		return newAmountToMove;
 
 
@@ -464,17 +468,14 @@ public class WorldUpdater {
 		this.rightKeyR = s;
 	}
 
-	public ArrayList<Background> getBackgrounds() {
-		return backgrounds;
+	public World getCurrentWorld() {
+		return this.currentWorld;
 	}
 
-	public void setBackgrounds(ArrayList<Background> b) {
-		this.backgrounds = b;
+	public void setCurrentWorld(World currentWorld) {
+		this.currentWorld = currentWorld;
 	}
 
-	public ArrayList<Background> getActiveBackgrounds() {
-		return activeBackgrounds;
-	}
 
 	public void setBusy(boolean b) {
 		busy = b;
@@ -654,6 +655,8 @@ public class WorldUpdater {
 			double footX = entity.getX();
 			double footY = entity.getY() - 0.5*entity.getHeight();
 			double headY = entity.getY() + 0.5*entity.getHeight();
+			this.outOfIntervalRangeThreshold = amountToMove + 0.00000001;
+			
 			System.out.println("NAVIGATE: footX = "+footX+ " footY = "+footY);
 		
 			Interval terrain = null;
@@ -679,16 +682,31 @@ public class WorldUpdater {
 			Interval.exactMode = false;
 			//
 			
-			for (int a = 0; a < activeBackgrounds.size(); a++) {
-				for (int v = 0; v < activeBackgrounds.get(a).getIntervals().size(); v++) {
+			double entityExtentPaddingLeft = 0.0, entityExtentPaddingRight = 0.0;
+			if (leftwardMovement) {
+				entityExtentPaddingLeft = -amountToMove;
+			} else if (rightwardMovement) {
+				entityExtentPaddingRight = amountToMove;
+			}
+			int hashCodes[] = currentWorld.getTerrain().genHashCodesFromKeysX(entity.getX() + entityExtentPaddingLeft - 0.5*entity.getFeetWidth(),  entity.getX() + entityExtentPaddingRight + 0.5*entity.getFeetWidth());	
+			
+			for (int a = 0; a < hashCodes.length; a++) {
+					
+				int thisHashCode = hashCodes[a];
+				ArrayList<Interval> bucketOfTerrain = currentWorld.getTerrain().getIntervalList(thisHashCode);
+				if (bucketOfTerrain == null) {
+					continue;
+				}
+				
+				for (int v = 0; v < bucketOfTerrain.size(); v++) {
 					
 					// Check if this interval is a left and/or right cliff
 					ArrayList<Integer> terrainModes = new ArrayList<Integer>(); // mode == 1: standard, mode == 2: leftCliff, mode == 3: rightCliff
 					terrainModes.add(1);
-					if (activeBackgrounds.get(a).getIntervals().get(v).isLeftCliff()) {
+					if (bucketOfTerrain.get(v).isLeftCliff()) {
 						terrainModes.add(2);
 					}
-					if (activeBackgrounds.get(a).getIntervals().get(v).isRightCliff()) {
+					if (bucketOfTerrain.get(v).isRightCliff()) {
 						terrainModes.add(3);
 					}
 				
@@ -696,11 +714,26 @@ public class WorldUpdater {
 					
 					for (int m = 1; m <= terrainModes.size(); m++) {
 						this.intervalsInspected++;
-						Interval anInterval = activeBackgrounds.get(a).getIntervals().get(v);
+						Interval anInterval = bucketOfTerrain.get(v);
 						int anIntervalMode = terrainModes.get(m - 1);
 						double x1 = anInterval.getX1(entity, anIntervalMode),   x2 = anInterval.getX2(entity, anIntervalMode);
-						double startingPosition = anInterval.getY1(entity, anIntervalMode),   endingPosition = anInterval.getY2(entity, anIntervalMode);
+						
+						// Quickly rule out distant intervals
+						if (footX < x1 && Math.abs(footX - x1) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (footX > x2 && Math.abs(footX - x2) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (footY < Math.min(anInterval.getY1(null, 1), anInterval.getY2(null, 1)) && Math.abs(footY - Math.min(anInterval.getY1(null, 1), anInterval.getY2(null, 1))) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (footY > Math.max(anInterval.getY1(null, 1), anInterval.getY2(null, 1)) && Math.abs(footY - Math.max(anInterval.getY1(null, 1), anInterval.getY2(null, 1))) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						
 						double landingPosition = anInterval.getLandingPosition(entity, anIntervalMode);
+						double startingPosition = anInterval.getY1(entity, anIntervalMode),   endingPosition = anInterval.getY2(entity, anIntervalMode);
 						double angle = anInterval.getPlatformAngle(anIntervalMode);
 						
 						if ( 
@@ -784,7 +817,6 @@ public class WorldUpdater {
 			double x1Value = 0.0, x2Value = 0.0, startingPosition = 0.0, endingPosition = 0.0, landingPosition = 0.0, angle = 0.0;
 			boolean onTerrain = false, onCeiling = false;
 			
-			activeBackgrounds.get(0).setRecentInterval(null);
 		
 			/*/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 			 *    CHECK AND HANDLE TERRAIN-TERRAIN INTERSECTION    *
@@ -1024,11 +1056,12 @@ public class WorldUpdater {
 		while (amountToMove > 0.0) {
 			//System.out.println("                 **                   ");
 			//System.out.println("*****TRAVERSE: WHILE LOOP BEGIN**********");
-			
+			 
 			double footX = entity.getX() + dxToMove;
 			double footY = entity.getY() - 0.5*entity.getHeight() + dyToMove;
 			double headY = entity.getY() + 0.5*entity.getHeight() + dyToMove;
 			
+			this.outOfIntervalRangeThreshold = amountToMove + 0.00000001;
 			//System.out.println("TRAVERSE: terrainEPX = "+terrainEndpointX +", terrainEPY = "+terrainEndpointY);
 			//System.out.println("TRAVERSE: aTM = "+amountToMove);
 			if (Math.abs(footX - terrainEndpointX) <= atTerrainEndpointPrecision) {
@@ -1047,7 +1080,7 @@ public class WorldUpdater {
 			// ceiling can change trajectory while in air and cause a platform intersection
 			boolean onPlatform = false;
 		   if (terrain != null) {
-			   //System.out.println("TERRAIN != NULL");
+			   //System.out.println("TERRAIN != NULL");  
 	  		if (Math.abs(footY - terrain.getLandingPositionFromSpecificPosition(entity, footX, terrainMode)) <= landingPrecision) {
 						onPlatform = true;
 				//		System.out.println("   trav: terrainLP = "+terrain.getLandingPositionFromSpecificPosition(entity, footX, terrainMode));
@@ -1079,33 +1112,61 @@ public class WorldUpdater {
 			lastFootPosition = new double[] {footX, footY};*/
 			//
 			
-			
-			for (int a = 0; a < activeBackgrounds.size(); a++) {
-				for (int v = 0; v < activeBackgrounds.get(a).getCeilings().size(); v++) {
+			double entityExtentPaddingLeft = 0.0, entityExtentPaddingRight = 0.0;
+			if (leftwardMovement) {
+				entityExtentPaddingLeft = -amountToMove;
+			} else if (rightwardMovement) {
+				entityExtentPaddingRight = amountToMove;
+			}
+			int hashCodes[] = currentWorld.getCeilings().genHashCodesFromKeysX(entity.getX() + entityExtentPaddingLeft - 0.5*entity.getFeetWidth(),  entity.getX() + entityExtentPaddingRight + 0.5*entity.getFeetWidth());	
+
+			for (int a = 0; a < hashCodes.length; a++) {
+					
+				int thisHashCode = hashCodes[a];
+				ArrayList<Interval> bucketOfCeilings = currentWorld.getCeilings().getIntervalList(thisHashCode);
+				if (bucketOfCeilings == null) {
+					continue;
+				}
+				
+				for (int v = 0; v < bucketOfCeilings.size(); v++) {
 					this.intervalsInspected++;
 					
 					ArrayList<Integer> intervalModes = new ArrayList<Integer>();
 					intervalModes.add(1);
-					if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+					if (bucketOfCeilings.get(v).isLeftCliff()) {
 						intervalModes.add(2);
 					}
-					if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+					if (bucketOfCeilings.get(v).isLeftCliff()) {
 						intervalModes.add(3);
 					}
 				
 					for (int m = 0; m < intervalModes.size(); m++) {
-						Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
+						Interval aCeiling = bucketOfCeilings.get(v);
 						int aCeilingIntervalMode = intervalModes.get(m);
 						double x1 = aCeiling.getX1(entity, aCeilingIntervalMode),  x2 = aCeiling.getX2(entity, aCeilingIntervalMode);
-						double cY1 = aCeiling.getY1(entity, aCeilingIntervalMode),  cY2 = aCeiling.getY2(entity, aCeilingIntervalMode);
-						double angle = aCeiling.getPlatformAngle(aCeilingIntervalMode);
+						
+						// Quickly rule out distant intervals
+						if (footX < x1 && Math.abs(footX - x1) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (footX > x2 && Math.abs(footX - x2) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (headY < Math.min(aCeiling.getY1(null, 1), aCeiling.getY2(null, 1)) && Math.abs(headY - Math.min(aCeiling.getY1(null, 1), aCeiling.getY2(null, 1))) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						if (headY > Math.max(aCeiling.getY1(null, 1), aCeiling.getY2(null, 1)) && Math.abs(headY - Math.max(aCeiling.getY1(null, 1), aCeiling.getY2(null, 1))) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						
 						// Have to compute ceilingPosition manually here because entity position is not actually updated until the while loop in navigate finishes
 						double ceilingPosition = aCeiling.getLandingPositionFromSpecificPosition(entity, footX, aCeilingIntervalMode);
-						
-						
-						// Previously used just the x coordinate of an interval to determine if entity was at interval endpoint, can't do this for nearly perpendicular intervals
-						double distanceBetweenHeadAndX1EndPoint = Math.sqrt((footX-x1)*(footX-x1) + (headY-cY1)*(headY-cY1));
-						double distanceBetweenHeadAndX2EndPoint = Math.sqrt((footX-x2)*(footX-x2) + (headY-cY2)*(headY-cY2));
+						if (headY > ceilingPosition && Math.abs(headY - ceilingPosition) > outOfIntervalRangeThreshold) {
+							continue;
+						}
+						double cY1 = aCeiling.getY1(entity, aCeilingIntervalMode),  cY2 = aCeiling.getY2(entity, aCeilingIntervalMode);
+						double angle = aCeiling.getPlatformAngle(aCeilingIntervalMode);
+
 	
 						
 						// Test for ceiling acting as perpendicular wall
@@ -1202,9 +1263,7 @@ public class WorldUpdater {
 			
 			double cX1 = -Double.MAX_VALUE, cX2 = Double.MAX_VALUE, cY1 = 0.0, cY2 = 0.0, ceilingPosition = 0.0, angle = 0.0;
 			double tX1 = -Double.MAX_VALUE, tX2 = Double.MAX_VALUE, tY1 = 0.0, tY2 = 0.0;
-			boolean onCeiling = false;
-			
-			activeBackgrounds.get(0).setRecentInterval(null);
+			boolean onCeiling = false;			
 		
 		// FOR TESTING!	
 			if (creaturesCeiling != null) {
@@ -1622,21 +1681,31 @@ if (Double.isNaN(entity.getX())) {
 				double footX = entity.getX();
 				double headY = entity.getY() + 0.5*entity.getHeight();
 				
-				for (int a = 0; a < activeBackgrounds.size(); a++) {
-
-					for (int v = 0; v < activeBackgrounds.get(a).getCeilings().size(); v++) {
+				
+				int hashCodes[] = currentWorld.getCeilings().genHashCodesFromKeysX(entity.getX() - 0.5*entity.getFeetWidth(),  entity.getX() + 0.5*entity.getFeetWidth());				
+			
+			
+				for (int a = 0; a < hashCodes.length; a++) {
+					
+					int thisHashCode = hashCodes[a];
+					ArrayList<Interval> bucketOfCeilings = currentWorld.getCeilings().getIntervalList(thisHashCode);
+					if (bucketOfCeilings == null) {
+						continue;
+					}
+					
+					for (int v = 0; v < bucketOfCeilings.size(); v++) {
 						
 						ArrayList<Integer> intervalModes = new ArrayList<Integer>();
 						intervalModes.add(1);
-						if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+						if (bucketOfCeilings.get(v).isLeftCliff()) {
 							intervalModes.add(2);
 						}
-						if (activeBackgrounds.get(a).getCeilings().get(v).isLeftCliff()) {
+						if (bucketOfCeilings.get(v).isLeftCliff()) {
 							intervalModes.add(3);
 						}
 						
 						for (int m = 0; m < intervalModes.size(); m++) {
-							Interval aCeiling = activeBackgrounds.get(a).getCeilings().get(v);
+							Interval aCeiling = bucketOfCeilings.get(v);
 							int anIntervalMode = intervalModes.get(m);
 							double x1 = aCeiling.getX1(entity,anIntervalMode),   x2 = aCeiling.getX2(entity,anIntervalMode);
 							double ceilingPosition = aCeiling.getLandingPosition(entity,anIntervalMode);
@@ -1653,19 +1722,19 @@ if (Double.isNaN(entity.getX())) {
 	
 								else {
 	
-									if ((entity.getY() + 0.5 * entity.getHeight() < activeBackgrounds.get(a).getCeilings()
+									if ((entity.getY() + 0.5 * entity.getHeight() < bucketOfCeilings
 											.get(v).getLandingPosition(entity, anIntervalMode)
 											|| Math.abs(entity.getY() + 0.5 * entity.getHeight()
-													- activeBackgrounds.get(a).getCeilings().get(v).getLandingPosition(
+													- bucketOfCeilings.get(v).getLandingPosition(
 															entity, anIntervalMode)) <= landingPrecision)
-											&& (activeBackgrounds.get(a).getCeilings().get(v)
+											&& (bucketOfCeilings.get(v)
 													.getLandingPosition(entity, anIntervalMode) < ceilingInterval
 															.getLandingPosition(entity, ceilingIntervalMode)
-													|| Math.abs(activeBackgrounds.get(a).getCeilings().get(v)
+													|| Math.abs(bucketOfCeilings.get(v)
 															.getLandingPosition(entity, anIntervalMode)
 															- ceilingInterval.getLandingPosition(
 																	entity, ceilingIntervalMode)) <= landingPrecision)) {
-											ceilingInterval = activeBackgrounds.get(a).getCeilings().get(v);
+											ceilingInterval = bucketOfCeilings.get(v);
 											ceilingIntervalMode = anIntervalMode;
 										
 									}
@@ -1756,10 +1825,18 @@ if (Double.isNaN(entity.getX())) {
 				 CHECK IF ENTITY IS WITHIN A SLOPED WALL INTERVAL				 
 				 **************************************************/
 				
+				int hashCodes[] = currentWorld.getSlopedWalls().genHashCodesFromKeysX(footX - 0.5*entity.getFeetWidth(),  footX + 0.5*entity.getFeetWidth());
 				
-				for (int a = 0; a < activeBackgrounds.size(); a++) {
-					for (int v = 0; v < activeBackgrounds.get(a).getSlopedWalls().size(); v++) {
-						Interval aSlopedWall = activeBackgrounds.get(a).getSlopedWalls().get(v);
+				for (int a = 0; a < hashCodes.length; a++) {
+						
+					int thisHashCode = hashCodes[a];
+					ArrayList<Interval> bucketOfWalls = currentWorld.getSlopedWalls().getIntervalList(thisHashCode);
+					if (bucketOfWalls == null) {
+						continue;
+					}
+					
+					for (int v = 0; v < bucketOfWalls.size(); v++) {
+						Interval aSlopedWall = bucketOfWalls.get(v);
 						double x1 = aSlopedWall.getX1(entity, 1),   x2 = aSlopedWall.getX2(entity, 1);
 						double wallPosition = aSlopedWall.getLandingPositionFromSpecificPosition(entity, footX, 1);
 						double wallAngle = aSlopedWall.getPlatformAngle(1);
@@ -1849,20 +1926,30 @@ if (Double.isNaN(entity.getX())) {
 				/*****************************************************
 				 THEN CHECK IF ENTITY IS WITHIN A TERRAIN INTERVAL 
 				*****************************************************/
-				for (int a = 0; a < activeBackgrounds.size(); a++) {
-					for (int v = 0; v < activeBackgrounds.get(a).getIntervals().size(); v++) {
+				
+				hashCodes = currentWorld.getTerrain().genHashCodesFromKeysX(footX - 0.5*entity.getFeetWidth(),  footX + 0.5*entity.getFeetWidth());	
+
+				for (int a = 0; a < hashCodes.length; a++) {
+						
+					int thisHashCode = hashCodes[a];
+					ArrayList<Interval> bucketOfTerrain = currentWorld.getTerrain().getIntervalList(thisHashCode);
+					if (bucketOfTerrain== null) {
+						continue;
+					}
+					
+					for (int v = 0; v < bucketOfTerrain.size(); v++) {
 						
 						ArrayList<Integer> intervalModes = new ArrayList<Integer>(); // mode == 1: standard, mode == 2: leftCliff, mode == 3: rightCliff
 						intervalModes.add(1);
-						if (activeBackgrounds.get(a).getIntervals().get(v).isLeftCliff()) {
+						if (bucketOfTerrain.get(v).isLeftCliff()) {
 							intervalModes.add(2);
 						}
-						if (activeBackgrounds.get(a).getIntervals().get(v).isRightCliff()) {
+						if (bucketOfTerrain.get(v).isRightCliff()) {
 							intervalModes.add(3);
 						}
 						
 						for (int m = 1; m <= intervalModes.size(); m++) {
-							Interval anInterval = activeBackgrounds.get(a).getIntervals().get(v);
+							Interval anInterval = bucketOfTerrain.get(v);
 							int anIntervalMode = intervalModes.get(m - 1);
 							double x1 = anInterval.getX1(entity, anIntervalMode),   x2 = anInterval.getX2(entity, anIntervalMode);
 							double landingPosition = anInterval.getLandingPositionFromSpecificPosition(entity, footX, anIntervalMode);
@@ -2252,22 +2339,31 @@ if (Double.isNaN(entity.getX())) {
 		Interval fellThruIntervalLeftNeighbor, fellThruIntervalRightNeighbor;
 				
 		// TERRAIN CHECK
-		for (int j = 0; j < activeBackgrounds.size(); j++) {
-			for (int p = 0; p < activeBackgrounds.get(j).getIntervals().size(); p++) {
+		int hashCodes[] = currentWorld.getTerrain().genHashCodesFromKeysX(entity.getX() - 0.5*entity.getFeetWidth(),  entity.getX() + 0.5*entity.getFeetWidth());	
+
+		for (int j = 0; j < hashCodes.length; j++) {
+				
+			int thisHashCode = hashCodes[j];
+			ArrayList<Interval> bucketOfTerrain = currentWorld.getTerrain().getIntervalList(thisHashCode);
+			if (bucketOfTerrain == null) {
+				continue;
+			}
+			
+			for (int p = 0; p < bucketOfTerrain.size(); p++) {
 				
 				// Check if this interval is a left and/or right cliff
 				ArrayList<Integer> intervalModes = new ArrayList<Integer>(); // mode == 1: standard, mode == 2: leftCliff, mode == 3: rightCliff
 				intervalModes.add(1);
-				if (activeBackgrounds.get(j).getIntervals().get(p).isLeftCliff()) {
+				if (bucketOfTerrain.get(p).isLeftCliff()) {
 					intervalModes.add(2);
 				}
-				if (activeBackgrounds.get(j).getIntervals().get(p).isRightCliff()) {
+				if (bucketOfTerrain.get(p).isRightCliff()) {
 					intervalModes.add(3);
 				}
 			
 				for (int m = 0; m < intervalModes.size(); m++) {
 					int anIntervalMode = intervalModes.get(m);
-					Interval aTerrain = activeBackgrounds.get(j).getIntervals().get(p);
+					Interval aTerrain = bucketOfTerrain.get(p);
 					double x1 = aTerrain.getX1(entity, anIntervalMode );
 					double x2 = aTerrain.getX2(entity, anIntervalMode );
 					double sP = aTerrain.getY1(entity, anIntervalMode );
@@ -2297,10 +2393,19 @@ if (Double.isNaN(entity.getX())) {
 			}
 		}
 		// SLOPED WALL CHECK
-		for (int j = 0; j < activeBackgrounds.size(); j++) {
-			for (int p = 0; p < activeBackgrounds.get(j).getSlopedWalls().size(); p++) {
+		hashCodes = currentWorld.getSlopedWalls().genHashCodesFromKeysX(entity.getX() - 0.5*entity.getFeetWidth(),  entity.getX() + 0.5*entity.getFeetWidth());	
+
+		for (int j = 0; j < hashCodes.length; j++) {
+							
+			int thisHashCode = hashCodes[j];
+			ArrayList<Interval> bucketOfWalls = currentWorld.getSlopedWalls().getIntervalList(thisHashCode);
+			if (bucketOfWalls == null) {
+				continue;
+			}
+			
+			for (int p = 0; p < bucketOfWalls.size(); p++) {
 				
-					Interval aWall= activeBackgrounds.get(j).getSlopedWalls().get(p);
+					Interval aWall= bucketOfWalls.get(p);
 					double x1 = aWall.getX1(entity, 1);
 					double x2 = aWall.getX2(entity, 1);
 					double sP = aWall.getY1(entity,1);

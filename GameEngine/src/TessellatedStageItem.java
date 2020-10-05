@@ -82,7 +82,7 @@ public class TessellatedStageItem {
 	private int screenBrightnessLocation;
 	private int vaoId, vboIdV, vboIdN, vboIdT1, vboIdT2, eboID;
 	private int vertexCount, normalsCount, tCount;
-	private Background b;
+	private World b;
 	private float lightCRedChannel, lightCGreenChannel, lightCBlueChannel;
 	private float lightCRedChannelDelta;
 	private float size;
@@ -179,7 +179,7 @@ public class TessellatedStageItem {
 	private int vPMatrixLocation;
 	private int eyePositionWorldSpaceLocation;
 	
-	public StageItem(double x, double y, double z, float[] vertices, float[] normals, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, Background b, float size, float rotationX, float rotationY, float rotationZ, boolean isNormalMapped, Wrap normalMap, boolean isDisplacementMapped, Wrap displacementMap, boolean hasMotion, int waterHeightField) throws Exception {
+	public TessellatedStageItem(double x, double y, double z, float[] vertices, float[] normals, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, World b, float size, float rotationX, float rotationY, float rotationZ, boolean isNormalMapped, Wrap normalMap, boolean isDisplacementMapped, Wrap displacementMap, boolean hasMotion, int waterHeightField) throws Exception {
 		
 		
 		lightCRedChannel = 0.40f;

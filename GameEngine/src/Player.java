@@ -96,7 +96,7 @@ public class Player implements Entity {
 
 	private String facingDirection;
 	
-	private Background b;
+	private World b;
 	private float[] vertices = new float[]{
 			
 
@@ -223,7 +223,7 @@ public class Player implements Entity {
 		z = -5.0;
 		this.height = 0.350;
 		width = 0.50;
-		feetWidth = 0.30;
+		feetWidth = 0.350;     // remember to factor in this.scale!
 		feetOSet = 10;
 		feetHeight = 5;
 		dx = 0;
@@ -2333,7 +2333,7 @@ public class Player implements Entity {
 	
 	
 	
-	public void setBG(Background b) {
+	public void setBG(World b) {
 		this.b = b;
 	}
 

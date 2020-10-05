@@ -85,7 +85,7 @@ public class StageItem {
 	private int vboIdTansSmooth, vboIdTansPlanar;
 	
 	private int vertexCount, normalsCount, tCount;
-	private Background b;
+	private World b;
 	private float lightCRedChannel, lightCGreenChannel, lightCBlueChannel;
 	private float lightCRedChannelDelta;
 	private float size;
@@ -182,7 +182,7 @@ public class StageItem {
 	private int vboIdBitsSmooth;
 	private int vboIdBitsPlanar;
 	
-	public StageItem(double x, double y, double z, float[] vertices, float[] normalsSmooth, float[] normalsPlanar, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, Background b, 
+	public StageItem(double x, double y, double z, float[] vertices, float[] normalsSmooth, float[] normalsPlanar, int[] indicies, ArrayList<Wrap> materials, ArrayList<float[]> uvsMaterials, World b, 
 			float size, float rotationX, float rotationY, float rotationZ, boolean isNormalMapped, Wrap normalMap, boolean isDisplacementMapped, Wrap displacementMap, boolean hasMotion, int waterHeightField) throws Exception {
 		
 		System.out.println("indsize is "+ indicies.length);

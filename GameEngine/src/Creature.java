@@ -54,7 +54,7 @@ public class Creature implements Entity{
 
 	private double x, y, z;
 	private double dx, dy;
-	private Background b;
+	private World b;
 	Vector2d motionVector;
 	
 	private int programId;
@@ -1776,10 +1776,10 @@ public void setZ(double z) {
 	}
 
 	
-	public void setBG(Background b) {
+	public void setBG(World b) {
 		this.b = b;
 	}
-	public Background getBG() {
+	public World getBG() {
 		return b;
 	}
 	

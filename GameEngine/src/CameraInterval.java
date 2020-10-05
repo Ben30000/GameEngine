@@ -6,10 +6,10 @@ public class CameraInterval {
 	private double y1;
 	private double y2;
 	private double threshold;
-	private Background b;
+	private World b;
 	
 	
-	public CameraInterval(double x1, double x2, double y1, double y2, double threshold, Background b) {
+	public CameraInterval(double x1, double x2, double y1, double y2, double threshold, World b) {
 		this.setX1(x1);
 		this.setX2(x2);
 		this.setY1(y1);
